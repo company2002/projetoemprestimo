@@ -4,6 +4,10 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const solicitacoesRoutes = require('./src/routes/solicitacoes');
 const authRoutes = require('./src/routes/auth');
+const path = require('path');
+
+// Iniciar agendador de tarefas
+require('./src/scripts/scheduler');
 
 const app = express();
 
@@ -11,6 +15,12 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+
+// Diretório para logs
+const logDir = path.join(__dirname, 'logs');
+if (!require('fs').existsSync(logDir)) {
+    require('fs').mkdirSync(logDir);
+}
 
 // Rotas
 app.use('/api/auth', authRoutes);

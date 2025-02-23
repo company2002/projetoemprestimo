@@ -161,6 +161,110 @@ CREATE TABLE IF NOT EXISTS recuperacao_senha (
     FOREIGN KEY (cliente_id) REFERENCES clientes(id)
 );
 
+-- Criar tabela de logs de auditoria
+CREATE TABLE IF NOT EXISTS logs_auditoria (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    usuario_id INT,
+    tipo_operacao ENUM('insert', 'update', 'delete', 'login', 'logout', 'aprovacao', 'rejeicao') NOT NULL,
+    tabela_afetada VARCHAR(50) NOT NULL,
+    registro_id INT,
+    dados_anteriores JSON,
+    dados_novos JSON,
+    ip_address VARCHAR(45),
+    user_agent TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
+);
+
+-- Criar tabela de configurações de backup
+CREATE TABLE IF NOT EXISTS configuracoes_backup (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    tipo ENUM('completo', 'incremental') NOT NULL,
+    frequencia ENUM('diario', 'semanal', 'mensal') NOT NULL,
+    hora_execucao TIME NOT NULL,
+    ultima_execucao DATETIME,
+    proxima_execucao DATETIME,
+    diretorio_backup VARCHAR(255) NOT NULL,
+    retencao_dias INT DEFAULT 30,
+    status ENUM('ativo', 'inativo') DEFAULT 'ativo',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Criar tabela de histórico de backups
+CREATE TABLE IF NOT EXISTS historico_backups (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    configuracao_id INT,
+    arquivo VARCHAR(255) NOT NULL,
+    tamanho_bytes BIGINT NOT NULL,
+    inicio_backup DATETIME NOT NULL,
+    fim_backup DATETIME NOT NULL,
+    status ENUM('sucesso', 'erro', 'em_andamento') NOT NULL,
+    mensagem_erro TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (configuracao_id) REFERENCES configuracoes_backup(id)
+);
+
+-- Criar view para relatório de empréstimos
+CREATE OR REPLACE VIEW vw_relatorio_emprestimos AS
+SELECT 
+    s.id,
+    s.nome,
+    s.valor,
+    s.tipo,
+    s.status,
+    s.data_hora,
+    s.parcelas,
+    s.valor_total_pago,
+    s.valor_restante,
+    s.status_pagamento,
+    c.nome AS nome_cliente,
+    c.cpf,
+    c.tipo_cliente,
+    u.nome AS nome_operador
+FROM solicitacoes s
+LEFT JOIN clientes c ON s.cliente_id = c.id
+LEFT JOIN usuarios u ON s.operador = u.nome;
+
+-- Criar view para análise de inadimplência
+CREATE OR REPLACE VIEW vw_analise_inadimplencia AS
+SELECT 
+    c.id AS cliente_id,
+    c.nome AS nome_cliente,
+    c.cpf,
+    c.tipo_cliente,
+    COUNT(s.id) AS total_emprestimos,
+    SUM(CASE WHEN s.status_pagamento = 'inadimplente' THEN 1 ELSE 0 END) AS emprestimos_inadimplentes,
+    SUM(s.valor) AS valor_total_emprestimos,
+    SUM(s.valor_restante) AS valor_total_inadimplencia,
+    c.score
+FROM clientes c
+LEFT JOIN solicitacoes s ON c.id = s.cliente_id
+GROUP BY c.id, c.nome, c.cpf, c.tipo_cliente, c.score;
+
+-- Criar view para desempenho de operadores
+CREATE OR REPLACE VIEW vw_desempenho_operadores AS
+SELECT 
+    u.id AS operador_id,
+    u.nome AS nome_operador,
+    COUNT(s.id) AS total_solicitacoes,
+    SUM(CASE WHEN s.status = 'aprovado' THEN 1 ELSE 0 END) AS solicitacoes_aprovadas,
+    SUM(CASE WHEN s.status = 'recusado' THEN 1 ELSE 0 END) AS solicitacoes_recusadas,
+    SUM(s.valor) AS valor_total_emprestimos,
+    AVG(CASE WHEN s.status_pagamento = 'inadimplente' THEN 1 ELSE 0 END) * 100 AS taxa_inadimplencia
+FROM usuarios u
+LEFT JOIN solicitacoes s ON u.nome = s.operador
+WHERE u.role = 'operador'
+GROUP BY u.id, u.nome;
+
+-- Adicionar índices para otimização
+CREATE INDEX idx_solicitacoes_cliente ON solicitacoes(cliente_id);
+CREATE INDEX idx_solicitacoes_status ON solicitacoes(status);
+CREATE INDEX idx_solicitacoes_data ON solicitacoes(data_hora);
+CREATE INDEX idx_pagamentos_status ON pagamentos(status);
+CREATE INDEX idx_clientes_score ON clientes(score);
+CREATE INDEX idx_usuarios_role ON usuarios(role);
+
 -- Inserir usuário master inicial (senha: admin123)
 INSERT INTO usuarios (nome, email, senha, role, status) VALUES 
 ('Administrador Master', 'admin@sistema.com', '$2a$10$XYZ123ABC456DEF789GHI.abcdefghijklmnopqrstuvwxyz123456789', 'master', 'aprovado')
@@ -190,4 +294,87 @@ INSERT INTO medalhas (nome, descricao, icone, pontos) VALUES
 ('Cliente VIP', 'Atingiu o nível Ouro', 'fa-crown', 200),
 ('Mestre do Crédito', 'Atingiu o nível Diamante', 'fa-gem', 300),
 ('Indicador Bronze', 'Indicou 3 amigos', 'fa-users', 150),
-('Indicador Prata', 'Indicou 5 amigos', 'fa-user-plus', 250); 
+('Indicador Prata', 'Indicou 5 amigos', 'fa-user-plus', 250);
+
+-- Inserir configuração padrão de backup
+INSERT INTO configuracoes_backup 
+(tipo, frequencia, hora_execucao, diretorio_backup) VALUES 
+('completo', 'diario', '23:00:00', '/backups/database')
+ON DUPLICATE KEY UPDATE id=id;
+
+-- Criar procedure para limpeza automática de logs antigos
+DELIMITER //
+CREATE PROCEDURE sp_limpar_logs_antigos(IN dias_retencao INT)
+BEGIN
+    DELETE FROM logs_auditoria 
+    WHERE created_at < DATE_SUB(NOW(), INTERVAL dias_retencao DAY);
+    
+    DELETE FROM historico_backups 
+    WHERE created_at < DATE_SUB(NOW(), INTERVAL dias_retencao DAY);
+END //
+DELIMITER ;
+
+-- Criar evento para execução automática da limpeza de logs
+CREATE EVENT IF NOT EXISTS ev_limpar_logs
+ON SCHEDULE EVERY 1 DAY
+DO CALL sp_limpar_logs_antigos(90);
+
+-- Criar trigger para registrar alterações em solicitações
+DELIMITER //
+CREATE TRIGGER tr_audit_solicitacoes_update
+AFTER UPDATE ON solicitacoes
+FOR EACH ROW
+BEGIN
+    INSERT INTO logs_auditoria (
+        tipo_operacao,
+        tabela_afetada,
+        registro_id,
+        dados_anteriores,
+        dados_novos
+    ) VALUES (
+        'update',
+        'solicitacoes',
+        NEW.id,
+        JSON_OBJECT(
+            'status', OLD.status,
+            'valor', OLD.valor,
+            'parcelas', OLD.parcelas
+        ),
+        JSON_OBJECT(
+            'status', NEW.status,
+            'valor', NEW.valor,
+            'parcelas', NEW.parcelas
+        )
+    );
+END //
+DELIMITER ;
+
+-- Criar trigger para registrar alterações em clientes
+DELIMITER //
+CREATE TRIGGER tr_audit_clientes_update
+AFTER UPDATE ON clientes
+FOR EACH ROW
+BEGIN
+    INSERT INTO logs_auditoria (
+        tipo_operacao,
+        tabela_afetada,
+        registro_id,
+        dados_anteriores,
+        dados_novos
+    ) VALUES (
+        'update',
+        'clientes',
+        NEW.id,
+        JSON_OBJECT(
+            'score', OLD.score,
+            'status', OLD.status,
+            'tipo_cliente', OLD.tipo_cliente
+        ),
+        JSON_OBJECT(
+            'score', NEW.score,
+            'status', NEW.status,
+            'tipo_cliente', NEW.tipo_cliente
+        )
+    );
+END //
+DELIMITER ; 
