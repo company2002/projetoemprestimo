@@ -5,22 +5,18 @@ Sistema web completo para gerenciamento de empréstimos, com áreas específicas
 ## 🌐 URLs do Sistema
 
 **Área do Cliente:**
-- Login: https://company2002.github.io/projetoemprestimo/frontend/index.html
+- Login: https://company2002.github.io/projetoemprestimo/
 - Cadastro: https://company2002.github.io/projetoemprestimo/frontend/cadastro.html
 - Área do Cliente: https://company2002.github.io/projetoemprestimo/frontend/area-cliente.html
-- Recuperação de Senha: https://company2002.github.io/projetoemprestimo/frontend/recuperar-senha.html
 - Reset de Senha: https://company2002.github.io/projetoemprestimo/frontend/reset-senha.html
 
 **Área Administrativa:**
-- Login: https://company2002.github.io/projetoemprestimo/frontend/admin/index.html
-- Cadastro: https://company2002.github.io/projetoemprestimo/frontend/admin/cadastro.html
-- Painel Admin: https://company2002.github.io/projetoemprestimo/frontend/admin/painel.html
-- Recuperação de Senha: https://company2002.github.io/projetoemprestimo/frontend/admin/recuperar-senha.html
-- Reset de Senha: https://company2002.github.io/projetoemprestimo/frontend/admin/reset-senha.html
+- Login: https://company2002.github.io/projetoemprestimo/admin
+- Painel Admin: https://company2002.github.io/projetoemprestimo/admin/painel.html
 
 **Área Master:**
-- Login: https://company2002.github.io/projetoemprestimo/frontend/master/index.html
-- Painel Master: https://company2002.github.io/projetoemprestimo/frontend/master/painel.html
+- Login: https://company2002.github.io/projetoemprestimo/master
+- Painel Master: https://company2002.github.io/projetoemprestimo/master/painel.html
 
 ## 📋 Requisitos
 
