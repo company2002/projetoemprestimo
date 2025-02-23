@@ -117,6 +117,37 @@ CREATE TABLE IF NOT EXISTS historico_margem (
     FOREIGN KEY (alterado_por) REFERENCES usuarios(id)
 );
 
+-- Criar tabela de níveis
+CREATE TABLE IF NOT EXISTS niveis_cliente (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome ENUM('Bronze', 'Prata', 'Ouro', 'Diamante') NOT NULL,
+    score_minimo INT NOT NULL,
+    desconto_juros DECIMAL(5,2) NOT NULL,
+    multiplicador_margem DECIMAL(3,2) NOT NULL,
+    tempo_analise_horas INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Criar tabela de medalhas/conquistas
+CREATE TABLE IF NOT EXISTS medalhas (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    descricao TEXT NOT NULL,
+    icone VARCHAR(50) NOT NULL,
+    pontos INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Criar tabela de medalhas do cliente
+CREATE TABLE IF NOT EXISTS cliente_medalhas (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    cliente_id INT NOT NULL,
+    medalha_id INT NOT NULL,
+    data_conquista TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (cliente_id) REFERENCES clientes(id),
+    FOREIGN KEY (medalha_id) REFERENCES medalhas(id)
+);
+
 -- Inserir usuário master inicial
 INSERT INTO usuarios (nome, email, senha, role, status)
 VALUES (
@@ -125,4 +156,20 @@ VALUES (
     '$2a$10$XYZ123ABC456DEF789GHI.abcdefghijklmnopqrstuvwxyz123456789',
     'master',
     'aprovado'
-) ON DUPLICATE KEY UPDATE id=id; 
+) ON DUPLICATE KEY UPDATE id=id;
+
+-- Inserir níveis padrão
+INSERT INTO niveis_cliente (nome, score_minimo, desconto_juros, multiplicador_margem, tempo_analise_horas) VALUES
+('Bronze', 0, 0.00, 1.00, 24),
+('Prata', 300, 5.00, 1.25, 12),
+('Ouro', 600, 10.00, 1.50, 6),
+('Diamante', 900, 15.00, 2.00, 2);
+
+-- Inserir medalhas iniciais
+INSERT INTO medalhas (nome, descricao, icone, pontos) VALUES
+('Primeiro Empréstimo', 'Realizou seu primeiro empréstimo', 'fa-star', 50),
+('Pagador Pontual', 'Pagou 5 parcelas em dia consecutivamente', 'fa-clock', 100),
+('Cliente VIP', 'Atingiu o nível Ouro', 'fa-crown', 200),
+('Mestre do Crédito', 'Atingiu o nível Diamante', 'fa-gem', 300),
+('Indicador Bronze', 'Indicou 3 amigos', 'fa-users', 150),
+('Indicador Prata', 'Indicou 5 amigos', 'fa-user-plus', 250); 
