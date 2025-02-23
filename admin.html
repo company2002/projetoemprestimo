@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Administrativo - Sistema de Empréstimos</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #ff7b3e;
+            --secondary-color: #ffb347;
+            --error-color: #dc3545;
+            --success-color: #28a745;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        }
+
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        .status {
+            margin: 2rem 0;
+            padding: 1rem;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .status.error {
+            background: #fff3f3;
+            color: var(--error-color);
+            border: 1px solid var(--error-color);
+            display: none;
+        }
+
+        .status.success {
+            background: #f3fff3;
+            color: var(--success-color);
+            border: 1px solid var(--success-color);
+            display: none;
+        }
+
+        .btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            text-decoration: none;
+            display: inline-block;
+            margin: 0.5rem;
+            transition: transform 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .loading {
+            display: none;
+            margin: 1rem 0;
+        }
+
+        .loading i {
+            color: var(--primary-color);
+            font-size: 2rem;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .instructions {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 5px;
+            text-align: left;
+        }
+
+        .instructions h3 {
+            color: var(--primary-color);
+            margin-top: 0;
+        }
+
+        .instructions ol {
+            margin: 0;
+            padding-left: 1.2rem;
+        }
+
+        .instructions li {
+            margin: 0.5rem 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><i class="fas fa-user-shield"></i> Painel Administrativo</h1>
+        
+        <div id="loading" class="loading">
+            <i class="fas fa-spinner"></i>
+            <p>Verificando conexão com o servidor...</p>
+        </div>
+
+        <div id="errorStatus" class="status error">
+            <i class="fas fa-exclamation-triangle"></i>
+            <p>O servidor não está respondendo. Verifique se o sistema está iniciado.</p>
+        </div>
+
+        <div id="successStatus" class="status success">
+            <i class="fas fa-check-circle"></i>
+            <p>Servidor conectado! Redirecionando para o painel...</p>
+        </div>
+
+        <a href="http://localhost:3000/admin/index.html" class="btn" id="acessarBtn">
+            <i class="fas fa-sign-in-alt"></i> Acessar Painel
+        </a>
+
+        <a href="#" class="btn" id="verificarBtn" onclick="verificarServidor()">
+            <i class="fas fa-sync"></i> Verificar Conexão
+        </a>
+
+        <div class="instructions">
+            <h3><i class="fas fa-info-circle"></i> Como acessar o painel</h3>
+            <ol>
+                <li>Certifique-se que o MySQL está rodando</li>
+                <li>Execute o arquivo <code>start.bat</code> como administrador</li>
+                <li>Aguarde o servidor iniciar (pode levar alguns segundos)</li>
+                <li>Clique em "Acessar Painel"</li>
+                <li>Use as credenciais:
+                    <br>Email: <strong>admin@sistema.com</strong>
+                    <br>Senha: <strong>admin123</strong>
+                </li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        function verificarServidor() {
+            const loading = document.getElementById('loading');
+            const errorStatus = document.getElementById('errorStatus');
+            const successStatus = document.getElementById('successStatus');
+            const acessarBtn = document.getElementById('acessarBtn');
+
+            loading.style.display = 'block';
+            errorStatus.style.display = 'none';
+            successStatus.style.display = 'none';
+
+            fetch('http://localhost:3000/api/auth/verificar', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => {
+                loading.style.display = 'none';
+                if (response.ok) {
+                    successStatus.style.display = 'block';
+                    setTimeout(() => {
+                        window.location.href = 'http://localhost:3000/admin/index.html';
+                    }, 1500);
+                } else {
+                    throw new Error('Servidor não está respondendo');
+                }
+            })
+            .catch(error => {
+                loading.style.display = 'none';
+                errorStatus.style.display = 'block';
+            });
+        }
+
+        // Verificar automaticamente ao carregar a página
+        window.onload = verificarServidor;
+    </script>
+</body>
+</html> 
