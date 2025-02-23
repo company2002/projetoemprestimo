@@ -186,6 +186,60 @@
             background: #c0392b;
             color: white;
         }
+
+        /* Estilos para gerenciamento de clientes */
+        .search-box {
+            margin-bottom: 20px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .status-ativo {
+            color: #27ae60;
+            font-weight: bold;
+        }
+
+        .status-bloqueado {
+            color: #c0392b;
+            font-weight: bold;
+        }
+
+        .status-inadimplente {
+            color: #f39c12;
+            font-weight: bold;
+        }
+
+        input[type="number"] {
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        input[type="number"]:focus {
+            border-color: var(--primary-color);
+            outline: none;
+        }
+
+        .btn-small {
+            padding: 5px 10px;
+            font-size: 12px;
+            margin: 2px;
+        }
+
+        .btn-success {
+            background: #27ae60;
+        }
+
+        .btn-danger {
+            background: #c0392b;
+        }
     </style>
 </head>
 <body>
@@ -210,6 +264,9 @@
         <div id="painelContent" style="display: none;">
             <button onclick="mostrarGerenciarUsuarios()" class="btn">
                 <i class="fas fa-users-cog"></i> Gerenciar Usuários
+            </button>
+            <button onclick="mostrarGerenciarClientes()" class="btn">
+                <i class="fas fa-users"></i> Gerenciar Clientes
             </button>
 
             <div class="stats">
@@ -290,6 +347,33 @@
                 </thead>
                 <tbody id="usersTable">
                     <!-- Usuários serão inseridos aqui -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modal de Gerenciamento de Clientes -->
+    <div id="clientesModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="fecharModalClientes()">&times;</span>
+            <h2><i class="fas fa-users"></i> Gerenciar Clientes</h2>
+            
+            <div class="search-box">
+                <input type="text" id="pesquisaCliente" placeholder="Pesquisar cliente..." onkeyup="filtrarClientes()">
+            </div>
+
+            <table class="users-table">
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>CPF</th>
+                        <th>Score</th>
+                        <th>Status</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="clientesTable">
+                    <!-- Clientes serão inseridos aqui -->
                 </tbody>
             </table>
         </div>
@@ -526,6 +610,125 @@
         window.onclick = function(event) {
             if (event.target == document.getElementById('userModal')) {
                 fecharModal();
+            }
+        }
+
+        function mostrarGerenciarClientes() {
+            document.getElementById('clientesModal').style.display = 'block';
+            carregarClientes();
+        }
+
+        function fecharModalClientes() {
+            document.getElementById('clientesModal').style.display = 'none';
+        }
+
+        async function carregarClientes() {
+            try {
+                const response = await fetch(`${API_URL}/api/clientes`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (response.ok) {
+                    const clientes = await response.json();
+                    const tbody = document.getElementById('clientesTable');
+                    tbody.innerHTML = '';
+
+                    clientes.forEach(cliente => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${cliente.nome}</td>
+                            <td>${cliente.cpf}</td>
+                            <td>
+                                <input type="number" 
+                                       value="${cliente.score}" 
+                                       min="0" 
+                                       max="1000" 
+                                       onchange="atualizarScore(${cliente.id}, this.value)"
+                                       style="width: 80px">
+                            </td>
+                            <td class="status-${cliente.status}">${cliente.status}</td>
+                            <td>
+                                <button onclick="alterarStatusCliente(${cliente.id}, 'ativo')" 
+                                        class="btn btn-small ${cliente.status === 'ativo' ? 'btn-success' : ''}">
+                                    Ativo
+                                </button>
+                                <button onclick="alterarStatusCliente(${cliente.id}, 'bloqueado')" 
+                                        class="btn btn-small ${cliente.status === 'bloqueado' ? 'btn-danger' : ''}">
+                                    Bloqueado
+                                </button>
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                }
+            } catch (error) {
+                console.error('Erro ao carregar clientes:', error);
+                alert('Erro ao carregar clientes');
+            }
+        }
+
+        async function atualizarScore(clienteId, novoScore) {
+            try {
+                const response = await fetch(`${API_URL}/api/clientes/${clienteId}/score`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({ score: parseInt(novoScore) })
+                });
+
+                if (response.ok) {
+                    alert('Score atualizado com sucesso!');
+                } else {
+                    alert('Erro ao atualizar score');
+                    carregarClientes(); // Recarrega para restaurar o valor anterior
+                }
+            } catch (error) {
+                console.error('Erro ao atualizar score:', error);
+                alert('Erro ao atualizar score');
+                carregarClientes();
+            }
+        }
+
+        async function alterarStatusCliente(clienteId, novoStatus) {
+            try {
+                const response = await fetch(`${API_URL}/api/clientes/${clienteId}/status`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({ status: novoStatus })
+                });
+
+                if (response.ok) {
+                    alert('Status do cliente atualizado com sucesso!');
+                    carregarClientes();
+                } else {
+                    alert('Erro ao atualizar status do cliente');
+                }
+            } catch (error) {
+                console.error('Erro ao atualizar status:', error);
+                alert('Erro ao atualizar status do cliente');
+            }
+        }
+
+        function filtrarClientes() {
+            const input = document.getElementById('pesquisaCliente');
+            const filtro = input.value.toLowerCase();
+            const linhas = document.getElementById('clientesTable').getElementsByTagName('tr');
+
+            for (let linha of linhas) {
+                const nome = linha.cells[0].textContent.toLowerCase();
+                const cpf = linha.cells[1].textContent.toLowerCase();
+                if (nome.includes(filtro) || cpf.includes(filtro)) {
+                    linha.style.display = '';
+                } else {
+                    linha.style.display = 'none';
+                }
             }
         }
     </script>
