@@ -160,6 +160,32 @@
             text-align: left;
             border-bottom: 1px solid #ddd;
         }
+
+        .status-pendente {
+            color: #f39c12;
+            font-weight: bold;
+        }
+
+        .status-aprovado {
+            color: #27ae60;
+            font-weight: bold;
+        }
+
+        .status-recusado {
+            color: #c0392b;
+            font-weight: bold;
+        }
+
+        .btn-aprovar {
+            background: #27ae60;
+            color: white;
+            margin-right: 5px;
+        }
+
+        .btn-recusar {
+            background: #c0392b;
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -258,6 +284,7 @@
                         <th>Nome</th>
                         <th>Email</th>
                         <th>Tipo</th>
+                        <th>Status</th>
                         <th>Ações</th>
                     </tr>
                 </thead>
@@ -374,23 +401,34 @@
 
                 if (response.ok) {
                     const usuarios = await response.json();
+                    const userData = JSON.parse(atob(localStorage.getItem('token').split('.')[1]));
+                    const isMaster = userData.role === 'master';
+                    
                     const tbody = document.getElementById('usersTable');
                     tbody.innerHTML = '';
 
                     usuarios.forEach(user => {
                         const tr = document.createElement('tr');
+                        const acoes = isMaster ? `
+                            ${user.role !== 'master' ? `
+                                <button onclick="aprovarUsuario(${user.id})" class="btn btn-small btn-aprovar" ${user.status === 'aprovado' ? 'disabled' : ''}>
+                                    <i class="fas fa-check"></i>
+                                </button>
+                                <button onclick="recusarUsuario(${user.id})" class="btn btn-small btn-recusar" ${user.status === 'recusado' ? 'disabled' : ''}>
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            ` : ''}
+                            <button onclick="excluirUsuario(${user.id})" class="btn btn-small btn-danger">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        ` : '';
+
                         tr.innerHTML = `
                             <td>${user.nome}</td>
                             <td>${user.email}</td>
                             <td>${user.role}</td>
-                            <td>
-                                <button onclick="editarUsuario(${user.id})" class="btn btn-small">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <button onclick="excluirUsuario(${user.id})" class="btn btn-small btn-danger">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </td>
+                            <td class="status-${user.status}">${user.status}</td>
+                            <td>${acoes}</td>
                         `;
                         tbody.appendChild(tr);
                     });
@@ -398,6 +436,37 @@
             } catch (error) {
                 console.error('Erro ao carregar usuários:', error);
                 alert('Erro ao carregar usuários');
+            }
+        }
+
+        async function aprovarUsuario(id) {
+            await alterarStatusUsuario(id, 'aprovado');
+        }
+
+        async function recusarUsuario(id) {
+            await alterarStatusUsuario(id, 'recusado');
+        }
+
+        async function alterarStatusUsuario(id, status) {
+            try {
+                const response = await fetch(`${API_URL}/api/usuarios/${id}/status`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({ status })
+                });
+
+                if (response.ok) {
+                    alert(`Status do usuário ${status} com sucesso!`);
+                    carregarUsuarios();
+                } else {
+                    alert('Erro ao alterar status do usuário');
+                }
+            } catch (error) {
+                console.error('Erro ao alterar status:', error);
+                alert('Erro ao alterar status do usuário');
             }
         }
 
@@ -418,7 +487,7 @@
                 });
 
                 if (response.ok) {
-                    alert('Usuário criado com sucesso!');
+                    alert('Usuário criado com sucesso! Aguardando aprovação do usuário master.');
                     document.getElementById('novoUsuarioForm').style.display = 'none';
                     carregarUsuarios();
                 } else {

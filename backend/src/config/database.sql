@@ -30,17 +30,18 @@ CREATE TABLE IF NOT EXISTS usuarios (
     nome VARCHAR(100) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
     senha VARCHAR(255) NOT NULL,
-    role ENUM('admin', 'operador') NOT NULL DEFAULT 'operador',
+    role ENUM('master', 'admin', 'operador') NOT NULL DEFAULT 'operador',
+    status ENUM('pendente', 'aprovado', 'recusado') DEFAULT 'pendente',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
--- Inserir usuário administrador inicial
--- Senha: admin123 (já criptografada com bcrypt)
-INSERT INTO usuarios (nome, email, senha, role)
+-- Inserir usuário master inicial
+INSERT INTO usuarios (nome, email, senha, role, status)
 VALUES (
-    'Administrador',
-    'admin@sistema.com',
+    'Carlos Piquet',
+    'carlospiquet2025',
     '$2a$10$XYZ123ABC456DEF789GHI.abcdefghijklmnopqrstuvwxyz123456789',
-    'admin'
+    'master',
+    'aprovado'
 ) ON DUPLICATE KEY UPDATE id=id; 
