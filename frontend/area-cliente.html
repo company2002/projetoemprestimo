@@ -40,6 +40,14 @@
             margin-bottom: 10px;
         }
 
+        .simulador-section {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
         .emprestimos-section {
             background: white;
             padding: 20px;
@@ -62,33 +70,57 @@
             margin-bottom: 10px;
         }
 
-        .parcelas-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 10px;
-            margin-top: 15px;
+        .resultado-simulacao {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: var(--border-radius);
+            display: none;
         }
 
-        .parcela-card {
-            border: 1px solid #ddd;
-            border-radius: 5px;
+        .resultado-item {
+            display: flex;
+            justify-content: space-between;
             padding: 10px;
-            text-align: center;
+            border-bottom: 1px solid #ddd;
         }
 
-        .parcela-card.paga {
-            background: #d4edda;
-            border-color: #c3e6cb;
+        .resultado-item:last-child {
+            border-bottom: none;
         }
 
-        .parcela-card.pendente {
-            background: #fff3cd;
-            border-color: #ffeeba;
+        .opcoes-tipo {
+            margin: 15px 0;
+            display: none;
         }
 
-        .parcela-card.atrasada {
-            background: #f8d7da;
-            border-color: #f5c6cb;
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: var(--border-radius);
+            font-size: 16px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn-group .btn {
+            flex: 1;
         }
 
         .status-badge {
@@ -278,303 +310,307 @@
 <body>
     <div class="dashboard">
         <div class="welcome-section">
-            <h1>Bem-vindo(a), <span id="nomeCliente">Cliente</span>
-                <span id="tipoCliente" class="tipo-cliente"></span>
-            </h1>
-            <p>Aqui você pode acompanhar seus empréstimos e pagamentos</p>
-        </div>
-
-        <div class="nivel-container">
-            <h2>Seu Nível</h2>
-            <div class="nivel-card" id="nivelCard">
-                <i class="fas fa-crown nivel-icone"></i>
-                <h3 id="nivelNome">Carregando...</h3>
-                <div class="progresso-nivel">
-                    <div class="barra-progresso" id="progressoNivel"></div>
-                </div>
-                <p>Próximo nível em: <span id="pontosProximo">0</span> pontos</p>
-            </div>
-
-            <div class="beneficios-container">
-                <h3>Seus Benefícios</h3>
-                <ul id="listaBeneficios">
-                    <li><i class="fas fa-percentage"></i> Desconto nos juros: <span id="descontoJuros">0%</span></li>
-                    <li><i class="fas fa-chart-line"></i> Multiplicador de margem: <span id="multiplicadorMargem">1x</span></li>
-                    <li><i class="fas fa-clock"></i> Tempo de análise: <span id="tempoAnalise">24h</span></li>
-                </ul>
-            </div>
-        </div>
-
-        <div class="medalhas-container">
-            <h2>Suas Conquistas</h2>
-            <div class="medalhas-grid" id="medalhasGrid">
-                <!-- Medalhas serão inseridas aqui via JavaScript -->
-            </div>
+            <h1>Bem-vindo(a), <span id="nomeCliente"></span></h1>
+            <p>Seu Score: <strong id="scoreCliente">0</strong> pontos</p>
+            <span id="tipoCliente" class="tipo-cliente"></span>
         </div>
 
         <div class="status-cards">
             <div class="status-card">
-                <h3>Total de Empréstimos</h3>
-                <div id="totalEmprestimos">0</div>
+                <h3>Margem Disponível</h3>
+                <p>Avulso: <span id="margemAvulso">R$ 0,00</span></p>
+                <p>Parcelado: <span id="margemParcelado">R$ 0,00</span></p>
+                <p>Cartão: <span id="margemCartao">R$ 0,00</span></p>
             </div>
             <div class="status-card">
-                <h3>Valor Total Devido</h3>
-                <div id="valorTotalDevido">R$ 0,00</div>
+                <h3>Empréstimos Ativos</h3>
+                <p id="emprestimosAtivos">0</p>
             </div>
             <div class="status-card">
                 <h3>Próximo Vencimento</h3>
-                <div id="proximoVencimento">Nenhum</div>
-            </div>
-            <div class="status-card">
-                <h3>Score</h3>
-                <div id="scoreCliente">0</div>
+                <p id="proximoVencimento">Nenhum</p>
             </div>
         </div>
 
-        <div class="status-cards">
-            <div class="status-card">
-                <h3><i class="fas fa-money-bill-wave"></i> Margem Avulso</h3>
-                <div id="margemAvulso">R$ 0,00</div>
-                <small>Empréstimo de 20 a 30 dias</small>
-            </div>
-            <div class="status-card">
-                <h3><i class="fas fa-calendar-alt"></i> Margem Parcelado</h3>
-                <div id="margemParcelado">R$ 0,00</div>
-                <small>Empréstimo em até 10x</small>
-            </div>
-            <div class="status-card">
-                <h3><i class="fas fa-credit-card"></i> Margem Cartão</h3>
-                <div id="margemCartao">R$ 0,00</div>
-                <small>Empréstimo no cartão em até 12x</small>
+        <div class="simulador-section">
+            <h2><i class="fas fa-calculator"></i> Simulador de Empréstimos</h2>
+            <form id="simuladorForm">
+                <div class="form-group">
+                    <label for="valor">Valor Desejado</label>
+                    <input type="text" id="valor" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="tipo">Tipo de Empréstimo</label>
+                    <select id="tipo" required>
+                        <option value="">Selecione...</option>
+                        <option value="avulso">Empréstimo Avulso</option>
+                        <option value="parcelado">Empréstimo Parcelado</option>
+                        <option value="cartao">Empréstimo no Cartão</option>
+                    </select>
+                </div>
+
+                <div id="opcoesAvulso" class="opcoes-tipo">
+                    <div class="form-group">
+                        <label for="prazo">Prazo</label>
+                        <select id="prazo">
+                            <option value="20">20 dias</option>
+                            <option value="30">30 dias</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="opcoesParcelado" class="opcoes-tipo">
+                    <div class="form-group">
+                        <label for="parcelas">Número de Parcelas</label>
+                        <select id="parcelas">
+                            <option value="2">2x</option>
+                            <option value="6">6x</option>
+                            <option value="10">10x</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="opcoesCartao" class="opcoes-tipo">
+                    <div class="form-group">
+                        <label for="parcelasCartao">Número de Parcelas</label>
+                        <select id="parcelasCartao">
+                            <option value="5">5x</option>
+                            <option value="10">10x</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button type="button" onclick="calcularSimulacao()" class="btn btn-primary">
+                        <i class="fas fa-calculator"></i> Calcular
+                    </button>
+                </div>
+            </form>
+
+            <div id="resultadoSimulacao" class="resultado-simulacao">
+                <h3>Resultado da Simulação</h3>
+                <div class="resultado-item">
+                    <span>Valor Solicitado:</span>
+                    <span id="valorSolicitado">R$ 0,00</span>
+                </div>
+                <div class="resultado-item">
+                    <span>Valor dos Juros:</span>
+                    <span id="valorJuros">R$ 0,00</span>
+                </div>
+                <div class="resultado-item">
+                    <span>Valor Total:</span>
+                    <span id="valorTotal">R$ 0,00</span>
+                </div>
+                <div class="resultado-item">
+                    <span>Valor da Parcela:</span>
+                    <span id="valorParcela">R$ 0,00</span>
+                </div>
+
+                <div class="btn-group">
+                    <button onclick="solicitarEmprestimo()" class="btn btn-success">
+                        <i class="fas fa-check"></i> Solicitar Empréstimo
+                    </button>
+                </div>
             </div>
         </div>
 
         <div class="emprestimos-section">
-            <h2>Meus Empréstimos</h2>
-            <div id="listaEmprestimos">
-                <!-- Empréstimos serão inseridos aqui -->
-            </div>
-        </div>
-
-        <div class="emprestimos-section">
-            <h2>Solicitações de Aumento de Margem</h2>
-            <button onclick="abrirModalSolicitacao()" class="btn btn-primary">
-                <i class="fas fa-plus"></i> Nova Solicitação
-            </button>
-            <div id="listaSolicitacoes" class="mt-3">
-                <!-- Solicitações serão inseridas aqui -->
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal de Pagamento -->
-    <div id="modalPagamento" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2>Realizar Pagamento</h2>
-            <div id="detalhesPagamento"></div>
-            <form id="formPagamento">
-                <div class="form-group">
-                    <label>Forma de Pagamento</label>
-                    <select id="formaPagamento" required>
-                        <option value="pix">PIX</option>
-                        <option value="boleto">Boleto</option>
-                        <option value="transferencia">Transferência</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Comprovante</label>
-                    <input type="file" id="comprovante" accept="image/*,.pdf" required>
-                </div>
-                <button type="submit" class="btn btn-primary">Enviar Pagamento</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- Modal de Solicitação de Margem -->
-    <div id="modalSolicitacao" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2>Solicitar Aumento de Margem</h2>
-            <form id="formSolicitacao">
-                <div class="form-group">
-                    <label>Tipo de Margem</label>
-                    <select id="tipoMargem" required>
-                        <option value="avulso">Avulso</option>
-                        <option value="parcelado">Parcelado</option>
-                        <option value="cartao">Cartão</option>
-                        <option value="emergencial">Emergencial</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Valor Solicitado</label>
-                    <input type="text" id="valorSolicitado" required placeholder="R$ 0,00">
-                </div>
-                <div class="form-group">
-                    <label>Motivo da Solicitação</label>
-                    <textarea id="motivoSolicitacao" required rows="4"></textarea>
-                </div>
-                <button type="submit" class="btn btn-primary">Enviar Solicitação</button>
-            </form>
+            <h2><i class="fas fa-file-invoice-dollar"></i> Meus Empréstimos</h2>
+            <div id="listaEmprestimos"></div>
         </div>
     </div>
 
     <script>
-        const API_URL = 'https://sistema-emprestimo.onrender.com';
-        let clienteData = null;
-
         // Verificar autenticação
-        function verificarAuth() {
-            const token = localStorage.getItem('clienteToken');
-            if (!token) {
-                window.location.href = 'cadastro.html';
-                return;
-            }
-            clienteData = JSON.parse(localStorage.getItem('clienteData'));
-            document.getElementById('nomeCliente').textContent = clienteData.nome;
+        const token = localStorage.getItem('clienteToken');
+        if (!token) {
+            window.location.href = 'index.html';
         }
 
         // Carregar dados do cliente
-        async function carregarDados() {
+        async function carregarDadosCliente() {
             try {
-                const response = await fetch(`${API_URL}/api/clientes/${clienteData.id}/emprestimos`, {
+                const response = await fetch('http://localhost:3000/api/clientes/perfil', {
                     headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('clienteToken')}`
+                        'Authorization': `Bearer ${token}`
                     }
                 });
 
-                if (response.ok) {
-                    const data = await response.json();
-                    atualizarDashboard(data);
-                    renderizarEmprestimos(data.emprestimos);
+                if (!response.ok) {
+                    throw new Error('Erro ao carregar dados');
                 }
+
+                const cliente = await response.json();
+                
+                document.getElementById('nomeCliente').textContent = cliente.nome;
+                document.getElementById('scoreCliente').textContent = cliente.score;
+                document.getElementById('margemAvulso').textContent = formatarMoeda(cliente.margem_avulso);
+                document.getElementById('margemParcelado').textContent = formatarMoeda(cliente.margem_parcelado);
+                document.getElementById('margemCartao').textContent = formatarMoeda(cliente.margem_cartao);
+                
+                const tipoCliente = document.getElementById('tipoCliente');
+                tipoCliente.textContent = cliente.tipo_cliente;
+                tipoCliente.className = `tipo-cliente tipo-${cliente.tipo_cliente}`;
             } catch (error) {
                 console.error('Erro:', error);
-                alert('Erro ao carregar dados');
+                alert('Erro ao carregar dados do cliente');
             }
         }
 
-        // Atualizar dashboard
-        function atualizarDashboard(data) {
-            document.getElementById('totalEmprestimos').textContent = data.total_emprestimos;
-            document.getElementById('valorTotalDevido').textContent = formatarMoeda(data.valor_total_devido);
-            document.getElementById('proximoVencimento').textContent = data.proximo_vencimento ? formatarData(data.proximo_vencimento) : 'Nenhum';
-            document.getElementById('scoreCliente').textContent = data.score;
+        // Carregar empréstimos
+        async function carregarEmprestimos() {
+            try {
+                const response = await fetch('http://localhost:3000/api/clientes/solicitacoes', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Erro ao carregar empréstimos');
+                }
+
+                const emprestimos = await response.json();
+                const container = document.getElementById('listaEmprestimos');
+                container.innerHTML = '';
+
+                let emprestimosAtivos = 0;
+                let proximoVencimento = null;
+
+                emprestimos.forEach(emp => {
+                    if (emp.status !== 'quitado') {
+                        emprestimosAtivos++;
+                        if (!proximoVencimento || new Date(emp.proxima_parcela) < new Date(proximoVencimento)) {
+                            proximoVencimento = emp.proxima_parcela;
+                        }
+                    }
+
+                    container.innerHTML += `
+                        <div class="emprestimo-card">
+                            <div class="emprestimo-header">
+                                <h3>R$ ${emp.valor.toFixed(2)}</h3>
+                                <span class="status-badge status-${emp.status}">${emp.status}</span>
+                            </div>
+                            <p>Tipo: ${emp.tipo}</p>
+                            <p>Parcelas: ${emp.parcelas_pagas}/${emp.parcelas}</p>
+                            <p>Próximo vencimento: ${formatarData(emp.proxima_parcela)}</p>
+                        </div>
+                    `;
+                });
+
+                document.getElementById('emprestimosAtivos').textContent = emprestimosAtivos;
+                document.getElementById('proximoVencimento').textContent = proximoVencimento ? 
+                    formatarData(proximoVencimento) : 'Nenhum';
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro ao carregar empréstimos');
+            }
+        }
+
+        // Funções do simulador
+        document.getElementById('valor').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            value = (parseInt(value) / 100).toFixed(2);
             
-            // Atualizar margens
-            document.getElementById('margemAvulso').textContent = formatarMoeda(data.margem_avulso);
-            document.getElementById('margemParcelado').textContent = formatarMoeda(data.margem_parcelado);
-            document.getElementById('margemCartao').textContent = formatarMoeda(data.margem_cartao);
+            if (!isNaN(value)) {
+                value = value.replace('.', ',');
+                value = value.replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.');
+                e.target.value = `R$ ${value}`;
+            }
+        });
 
-            // Atualizar tipo de cliente
-            const tipoClienteElement = document.getElementById('tipoCliente');
-            tipoClienteElement.textContent = data.tipo_cliente;
-            tipoClienteElement.className = `tipo-cliente tipo-${data.tipo_cliente}`;
-
-            // Carregar solicitações
-            carregarSolicitacoes();
-        }
-
-        // Renderizar empréstimos
-        function renderizarEmprestimos(emprestimos) {
-            const container = document.getElementById('listaEmprestimos');
-            container.innerHTML = '';
-
-            emprestimos.forEach(emp => {
-                const card = document.createElement('div');
-                card.className = 'emprestimo-card';
-                
-                const statusClass = emp.status_pagamento === 'em_dia' ? 'status-em-dia' : 
-                                  emp.status_pagamento === 'atrasado' ? 'status-atrasado' : 
-                                  'status-quitado';
-
-                card.innerHTML = `
-                    <div class="emprestimo-header">
-                        <h3>Empréstimo #${emp.id}</h3>
-                        <span class="status-badge ${statusClass}">
-                            ${emp.status_pagamento.replace('_', ' ').toUpperCase()}
-                        </span>
-                    </div>
-                    <div>
-                        <p>Valor: ${formatarMoeda(emp.valor)}</p>
-                        <p>Total com Juros: ${formatarMoeda(emp.total)}</p>
-                        <p>Parcelas Pagas: ${emp.parcelas_pagas}/${emp.parcelas}</p>
-                        <p>Próximo Vencimento: ${formatarData(emp.proxima_parcela)}</p>
-                    </div>
-                    <div class="parcelas-grid">
-                        ${renderizarParcelas(emp.pagamentos)}
-                    </div>
-                `;
-
-                container.appendChild(card);
-            });
-        }
-
-        // Renderizar parcelas
-        function renderizarParcelas(pagamentos) {
-            return pagamentos.map(pag => {
-                const status = pag.status === 'pago' ? 'paga' :
-                             new Date(pag.data_vencimento) < new Date() ? 'atrasada' : 'pendente';
-                
-                return `
-                    <div class="parcela-card ${status}">
-                        <div>Parcela ${pag.numero_parcela}</div>
-                        <div>${formatarMoeda(pag.valor_parcela)}</div>
-                        <div>${formatarData(pag.data_vencimento)}</div>
-                        ${status === 'pendente' || status === 'atrasada' ? `
-                            <button onclick="abrirModalPagamento(${pag.id})" class="btn btn-small">
-                                Pagar
-                            </button>
-                        ` : ''}
-                    </div>
-                `;
-            }).join('');
-        }
-
-        // Modal de pagamento
-        function abrirModalPagamento(pagamentoId) {
-            const modal = document.getElementById('modalPagamento');
-            modal.style.display = 'block';
-            modal.dataset.pagamentoId = pagamentoId;
-        }
-
-        // Fechar modal
-        document.querySelector('.close').onclick = function() {
-            document.getElementById('modalPagamento').style.display = 'none';
-        }
-
-        // Enviar pagamento
-        document.getElementById('formPagamento').onsubmit = async function(e) {
-            e.preventDefault();
+        document.getElementById('tipo').addEventListener('change', function() {
+            document.querySelectorAll('.opcoes-tipo').forEach(el => el.style.display = 'none');
             
-            const pagamentoId = document.getElementById('modalPagamento').dataset.pagamentoId;
-            const formData = new FormData();
-            formData.append('forma_pagamento', document.getElementById('formaPagamento').value);
-            formData.append('comprovante', document.getElementById('comprovante').files[0]);
+            const tipo = this.value;
+            if (tipo) {
+                document.getElementById(`opcoes${tipo.charAt(0).toUpperCase() + tipo.slice(1)}`).style.display = 'block';
+            }
+        });
+
+        function calcularSimulacao() {
+            const valor = parseFloat(document.getElementById('valor').value.replace(/[^\d,]/g, '').replace(',', '.'));
+            const tipo = document.getElementById('tipo').value;
+            
+            let juros = 0;
+            let parcelas = 1;
+
+            switch (tipo) {
+                case 'avulso':
+                    const prazo = parseInt(document.getElementById('prazo').value);
+                    juros = prazo === 20 ? valor * 0.2 : valor * 0.3;
+                    break;
+                case 'parcelado':
+                    parcelas = parseInt(document.getElementById('parcelas').value);
+                    if (parcelas === 2) juros = valor * 0.3;
+                    else if (parcelas === 6) juros = valor * 0.45;
+                    else if (parcelas === 10) juros = valor * 0.65;
+                    break;
+                case 'cartao':
+                    parcelas = parseInt(document.getElementById('parcelasCartao').value);
+                    juros = parcelas === 5 ? valor * 0.15 : valor * 0.2;
+                    break;
+            }
+
+            const total = valor + juros;
+            const valorParcela = total / parcelas;
+
+            document.getElementById('valorSolicitado').textContent = formatarMoeda(valor);
+            document.getElementById('valorJuros').textContent = formatarMoeda(juros);
+            document.getElementById('valorTotal').textContent = formatarMoeda(total);
+            document.getElementById('valorParcela').textContent = formatarMoeda(valorParcela);
+            
+            document.getElementById('resultadoSimulacao').style.display = 'block';
+        }
+
+        async function solicitarEmprestimo() {
+            const valor = document.getElementById('valor').value;
+            const tipo = document.getElementById('tipo').value;
+            let parcelas;
+
+            switch (tipo) {
+                case 'avulso':
+                    parcelas = document.getElementById('prazo').value;
+                    break;
+                case 'parcelado':
+                    parcelas = document.getElementById('parcelas').value;
+                    break;
+                case 'cartao':
+                    parcelas = document.getElementById('parcelasCartao').value;
+                    break;
+            }
 
             try {
-                const response = await fetch(`${API_URL}/api/pagamentos/${pagamentoId}`, {
+                const response = await fetch('http://localhost:3000/api/solicitacoes', {
                     method: 'POST',
                     headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('clienteToken')}`
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
                     },
-                    body: formData
+                    body: JSON.stringify({
+                        valor: valor.replace(/[^\d,]/g, '').replace(',', '.'),
+                        tipo,
+                        parcelas,
+                        data_hora: new Date().toISOString()
+                    })
                 });
 
                 if (response.ok) {
-                    alert('Pagamento enviado com sucesso! Aguarde a confirmação.');
-                    document.getElementById('modalPagamento').style.display = 'none';
-                    carregarDados();
+                    alert('Solicitação enviada com sucesso! Em breve entraremos em contato.');
+                    document.getElementById('simuladorForm').reset();
+                    document.getElementById('resultadoSimulacao').style.display = 'none';
+                    carregarEmprestimos();
                 } else {
-                    alert('Erro ao enviar pagamento');
+                    const data = await response.json();
+                    alert(data.error || 'Erro ao enviar solicitação');
                 }
             } catch (error) {
                 console.error('Erro:', error);
-                alert('Erro ao enviar pagamento');
+                alert('Erro ao conectar com o servidor');
             }
         }
 
-        // Funções auxiliares
         function formatarMoeda(valor) {
             return valor.toLocaleString('pt-BR', {
                 style: 'currency',
@@ -586,190 +622,9 @@
             return new Date(data).toLocaleDateString('pt-BR');
         }
 
-        // Carregar solicitações de margem
-        async function carregarSolicitacoes() {
-            try {
-                const response = await fetch(`${API_URL}/api/clientes/${clienteData.id}/solicitacoes-margem`, {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('clienteToken')}`
-                    }
-                });
-
-                if (response.ok) {
-                    const solicitacoes = await response.json();
-                    renderizarSolicitacoes(solicitacoes);
-                }
-            } catch (error) {
-                console.error('Erro:', error);
-            }
-        }
-
-        // Renderizar solicitações
-        function renderizarSolicitacoes(solicitacoes) {
-            const container = document.getElementById('listaSolicitacoes');
-            container.innerHTML = '';
-
-            solicitacoes.forEach(sol => {
-                const card = document.createElement('div');
-                card.className = 'emprestimo-card';
-                
-                card.innerHTML = `
-                    <div class="emprestimo-header">
-                        <h3>Solicitação de ${sol.tipo_margem.toUpperCase()}</h3>
-                        <span class="status-badge status-${sol.status}">
-                            ${sol.status.toUpperCase()}
-                        </span>
-                    </div>
-                    <div>
-                        <p>Valor Solicitado: ${formatarMoeda(sol.valor_solicitado)}</p>
-                        <p>Data: ${formatarData(sol.created_at)}</p>
-                        <p>Motivo: ${sol.motivo}</p>
-                        ${sol.observacao ? `<p>Observação: ${sol.observacao}</p>` : ''}
-                    </div>
-                `;
-
-                container.appendChild(card);
-            });
-        }
-
-        // Abrir modal de solicitação
-        function abrirModalSolicitacao() {
-            document.getElementById('modalSolicitacao').style.display = 'block';
-        }
-
-        // Máscara para valor solicitado
-        document.getElementById('valorSolicitado').addEventListener('input', function(e) {
-            let value = e.target.value.replace(/\D/g, '');
-            value = (parseInt(value) / 100).toFixed(2);
-            
-            if (!isNaN(value)) {
-                value = value.replace('.', ',');
-                value = value.replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.');
-                e.target.value = `R$ ${value}`;
-            }
-        });
-
-        // Enviar solicitação
-        document.getElementById('formSolicitacao').onsubmit = async function(e) {
-            e.preventDefault();
-            
-            const dados = {
-                tipo_margem: document.getElementById('tipoMargem').value,
-                valor_solicitado: desformatarMoeda(document.getElementById('valorSolicitado').value),
-                motivo: document.getElementById('motivoSolicitacao').value
-            };
-
-            try {
-                const response = await fetch(`${API_URL}/api/clientes/${clienteData.id}/solicitacoes-margem`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('clienteToken')}`
-                    },
-                    body: JSON.stringify(dados)
-                });
-
-                if (response.ok) {
-                    alert('Solicitação enviada com sucesso!');
-                    document.getElementById('modalSolicitacao').style.display = 'none';
-                    document.getElementById('formSolicitacao').reset();
-                    carregarSolicitacoes();
-                } else {
-                    alert('Erro ao enviar solicitação');
-                }
-            } catch (error) {
-                console.error('Erro:', error);
-                alert('Erro ao enviar solicitação');
-            }
-        };
-
-        // Função para carregar dados do cliente
-        async function carregarDadosCliente() {
-            try {
-                const response = await fetch(`${API_URL}/api/clientes/perfil`, {
-                    headers: {
-                        'Authorization': 'Bearer ' + localStorage.getItem('token')
-                    }
-                });
-                
-                const data = await response.json();
-                atualizarNivel(data);
-                atualizarBeneficios(data);
-                carregarMedalhas();
-            } catch (error) {
-                console.error('Erro ao carregar dados:', error);
-            }
-        }
-
-        // Função para atualizar nível
-        function atualizarNivel(data) {
-            const nivelNome = document.getElementById('nivelNome');
-            const progressoNivel = document.getElementById('progressoNivel');
-            const pontosProximo = document.getElementById('pontosProximo');
-
-            nivelNome.textContent = data.nivel;
-            
-            // Calcular progresso para próximo nível
-            const niveisScore = {
-                'Bronze': 0,
-                'Prata': 300,
-                'Ouro': 600,
-                'Diamante': 900
-            };
-
-            const nivelAtual = niveisScore[data.nivel];
-            const proximoNivel = Object.entries(niveisScore).find(([nivel, score]) => score > data.score);
-            
-            if (proximoNivel) {
-                const progresso = ((data.score - nivelAtual) / (proximoNivel[1] - nivelAtual)) * 100;
-                progressoNivel.style.width = `${progresso}%`;
-                pontosProximo.textContent = proximoNivel[1] - data.score;
-            } else {
-                progressoNivel.style.width = '100%';
-                pontosProximo.textContent = 'Nível máximo atingido!';
-            }
-        }
-
-        // Função para atualizar benefícios
-        function atualizarBeneficios(data) {
-            document.getElementById('descontoJuros').textContent = `${data.beneficios.desconto_juros}%`;
-            document.getElementById('multiplicadorMargem').textContent = `${data.beneficios.multiplicador_margem}x`;
-            document.getElementById('tempoAnalise').textContent = `${data.beneficios.tempo_analise_horas}h`;
-        }
-
-        // Função para carregar medalhas
-        async function carregarMedalhas() {
-            try {
-                const response = await fetch(`${API_URL}/api/clientes/medalhas`, {
-                    headers: {
-                        'Authorization': 'Bearer ' + localStorage.getItem('token')
-                    }
-                });
-                
-                const data = await response.json();
-                const medalhasGrid = document.getElementById('medalhasGrid');
-                medalhasGrid.innerHTML = '';
-
-                data.forEach(medalha => {
-                    const card = document.createElement('div');
-                    card.className = `medalha-card ${medalha.conquistada ? '' : 'bloqueada'}`;
-                    card.innerHTML = `
-                        <i class="fas ${medalha.icone} medalha-icone"></i>
-                        <h4>${medalha.nome}</h4>
-                        <p>${medalha.descricao}</p>
-                        ${medalha.conquistada ? `<small>Conquistada em: ${new Date(medalha.data_conquista).toLocaleDateString()}</small>` : ''}
-                    `;
-                    medalhasGrid.appendChild(card);
-                });
-            } catch (error) {
-                console.error('Erro ao carregar medalhas:', error);
-            }
-        }
-
         // Inicialização
-        verificarAuth();
-        carregarDados();
         carregarDadosCliente();
+        carregarEmprestimos();
     </script>
 </body>
 </html> 
