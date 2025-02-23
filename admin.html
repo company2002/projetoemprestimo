@@ -121,80 +121,132 @@
     <div class="container">
         <h1><i class="fas fa-user-shield"></i> Painel Administrativo</h1>
         
-        <div id="loading" class="loading">
-            <i class="fas fa-spinner"></i>
-            <p>Verificando conexão com o servidor...</p>
+        <div id="loginForm" style="display: block;">
+            <h2>Login</h2>
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" placeholder="admin@sistema.com" class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="senha">Senha</label>
+                <input type="password" id="senha" placeholder="********" class="form-control">
+            </div>
+            <button onclick="fazerLogin()" class="btn">
+                <i class="fas fa-sign-in-alt"></i> Entrar
+            </button>
         </div>
 
-        <div id="errorStatus" class="status error">
-            <i class="fas fa-exclamation-triangle"></i>
-            <p>O servidor não está respondendo. Verifique se o sistema está iniciado.</p>
-        </div>
+        <div id="painelContent" style="display: none;">
+            <div class="stats">
+                <div class="stat-card">
+                    <h3>Total de Solicitações</h3>
+                    <div id="totalSolicitacoes">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Solicitações Hoje</h3>
+                    <div id="solicitacoesHoje">0</div>
+                </div>
+            </div>
 
-        <div id="successStatus" class="status success">
-            <i class="fas fa-check-circle"></i>
-            <p>Servidor conectado! Redirecionando para o painel...</p>
-        </div>
-
-        <a href="http://localhost:3000/admin/index.html" class="btn" id="acessarBtn">
-            <i class="fas fa-sign-in-alt"></i> Acessar Painel
-        </a>
-
-        <a href="#" class="btn" id="verificarBtn" onclick="verificarServidor()">
-            <i class="fas fa-sync"></i> Verificar Conexão
-        </a>
-
-        <div class="instructions">
-            <h3><i class="fas fa-info-circle"></i> Como acessar o painel</h3>
-            <ol>
-                <li>Certifique-se que o MySQL está rodando</li>
-                <li>Execute o arquivo <code>start.bat</code> como administrador</li>
-                <li>Aguarde o servidor iniciar (pode levar alguns segundos)</li>
-                <li>Clique em "Acessar Painel"</li>
-                <li>Use as credenciais:
-                    <br>Email: <strong>admin@sistema.com</strong>
-                    <br>Senha: <strong>admin123</strong>
-                </li>
-            </ol>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Nome</th>
+                            <th>Telefone</th>
+                            <th>Valor</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="solicitacoesTable">
+                        <!-- Dados serão inseridos aqui -->
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
     <script>
-        function verificarServidor() {
-            const loading = document.getElementById('loading');
-            const errorStatus = document.getElementById('errorStatus');
-            const successStatus = document.getElementById('successStatus');
-            const acessarBtn = document.getElementById('acessarBtn');
+        const API_URL = 'https://seu-backend.onrender.com'; // URL do seu backend hospedado
 
-            loading.style.display = 'block';
-            errorStatus.style.display = 'none';
-            successStatus.style.display = 'none';
+        async function fazerLogin() {
+            const email = document.getElementById('email').value;
+            const senha = document.getElementById('senha').value;
 
-            fetch('http://localhost:3000/api/auth/verificar', {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            })
-            .then(response => {
-                loading.style.display = 'none';
+            try {
+                const response = await fetch(`${API_URL}/api/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, senha })
+                });
+
                 if (response.ok) {
-                    successStatus.style.display = 'block';
-                    setTimeout(() => {
-                        window.location.href = 'http://localhost:3000/admin/index.html';
-                    }, 1500);
+                    const data = await response.json();
+                    localStorage.setItem('token', data.token);
+                    document.getElementById('loginForm').style.display = 'none';
+                    document.getElementById('painelContent').style.display = 'block';
+                    carregarDados();
                 } else {
-                    throw new Error('Servidor não está respondendo');
+                    alert('Email ou senha incorretos');
                 }
-            })
-            .catch(error => {
-                loading.style.display = 'none';
-                errorStatus.style.display = 'block';
+            } catch (error) {
+                alert('Erro ao fazer login');
+            }
+        }
+
+        async function carregarDados() {
+            try {
+                const response = await fetch(`${API_URL}/api/solicitacoes`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (response.ok) {
+                    const solicitacoes = await response.json();
+                    atualizarDashboard(solicitacoes);
+                }
+            } catch (error) {
+                console.error('Erro ao carregar dados:', error);
+            }
+        }
+
+        function atualizarDashboard(solicitacoes) {
+            // Atualizar estatísticas
+            document.getElementById('totalSolicitacoes').textContent = solicitacoes.length;
+            
+            const hoje = new Date().toISOString().split('T')[0];
+            const solicitacoesHoje = solicitacoes.filter(s => 
+                s.data_hora.startsWith(hoje)
+            ).length;
+            document.getElementById('solicitacoesHoje').textContent = solicitacoesHoje;
+
+            // Atualizar tabela
+            const tbody = document.getElementById('solicitacoesTable');
+            tbody.innerHTML = '';
+
+            solicitacoes.forEach(s => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${new Date(s.data_hora).toLocaleString()}</td>
+                    <td>${s.nome}</td>
+                    <td>${s.telefone}</td>
+                    <td>R$ ${s.valor}</td>
+                    <td>${s.status || 'Pendente'}</td>
+                `;
+                tbody.appendChild(tr);
             });
         }
 
-        // Verificar automaticamente ao carregar a página
-        window.onload = verificarServidor;
+        // Verificar se já está logado
+        if (localStorage.getItem('token')) {
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('painelContent').style.display = 'block';
+            carregarDados();
+        }
     </script>
 </body>
 </html> 
