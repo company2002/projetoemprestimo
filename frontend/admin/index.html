@@ -123,7 +123,10 @@
                 <option value="cartao">Cartão</option>
             </select>
             <button class="btn btn-primary" onclick="exportarDados()">
-                <i class="fas fa-download"></i> Exportar
+                <i class="fas fa-download"></i> Exportar Excel
+            </button>
+            <button class="btn btn-danger" onclick="baixarRelatorioPDF()">
+                <i class="fas fa-file-pdf"></i> Relatório PDF
             </button>
         </div>
 
@@ -239,6 +242,36 @@
         // Função para exportar dados
         function exportarDados() {
             // Implementar exportação para CSV/Excel
+        }
+
+        // Função para baixar relatório PDF
+        async function baixarRelatorioPDF() {
+            const dataInicio = prompt('Digite a data inicial (YYYY-MM-DD):', moment().subtract(7, 'days').format('YYYY-MM-DD'));
+            const dataFim = prompt('Digite a data final (YYYY-MM-DD):', moment().format('YYYY-MM-DD'));
+
+            if (!dataInicio || !dataFim) return;
+
+            try {
+                const response = await fetch(`http://localhost:3000/api/solicitacoes/relatorio-pdf?dataInicio=${dataInicio}&dataFim=${dataFim}`, {
+                    headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('token')
+                    }
+                });
+
+                if (!response.ok) throw new Error('Erro ao gerar relatório');
+
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `relatorio_${moment().format('YYYY-MM-DD')}.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro ao gerar relatório PDF');
+            }
         }
 
         // Carregar dados ao iniciar

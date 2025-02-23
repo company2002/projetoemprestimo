@@ -1,4 +1,7 @@
 const { runQuery, getQuery, getOne } = require('../config/database');
+const PDFDocument = require('pdfkit');
+const moment = require('moment');
+const fs = require('fs');
 
 class SolicitacaoController {
     async listar(req, res) {
@@ -133,6 +136,68 @@ class SolicitacaoController {
         } catch (error) {
             console.error('Erro ao gerar relatório:', error);
             res.status(500).json({ error: 'Erro ao gerar relatório' });
+        }
+    }
+
+    async gerarRelatorioPDF(req, res) {
+        try {
+            const { dataInicio, dataFim } = req.query;
+            
+            let sql = 'SELECT * FROM solicitacoes WHERE 1=1';
+            const params = [];
+
+            if (dataInicio) {
+                sql += ' AND data_hora >= ?';
+                params.push(dataInicio);
+            }
+            if (dataFim) {
+                sql += ' AND data_hora <= ?';
+                params.push(dataFim);
+            }
+
+            sql += ' ORDER BY data_hora DESC';
+
+            const [solicitacoes] = await runQuery(sql, params);
+
+            // Criar PDF
+            const doc = new PDFDocument();
+            const filename = `relatorio_${moment().format('YYYY-MM-DD')}.pdf`;
+            
+            // Configurar cabeçalho
+            doc.fontSize(20).text('Relatório de Solicitações de Empréstimo', {align: 'center'});
+            doc.moveDown();
+            doc.fontSize(12).text(`Período: ${moment(dataInicio).format('DD/MM/YYYY')} a ${moment(dataFim).format('DD/MM/YYYY')}`);
+            doc.moveDown();
+
+            // Adicionar dados
+            solicitacoes.forEach(sol => {
+                doc.text(`Nome: ${sol.nome}`);
+                doc.text(`Telefone: ${sol.telefone}`);
+                doc.text(`Valor: R$ ${sol.valor}`);
+                doc.text(`Tipo: ${sol.tipo}`);
+                doc.text(`Status: ${sol.status}`);
+                doc.text(`Data: ${moment(sol.data_hora).format('DD/MM/YYYY HH:mm')}`);
+                doc.moveDown();
+            });
+
+            // Adicionar resumo
+            doc.moveDown();
+            const totalSolicitacoes = solicitacoes.length;
+            const valorTotal = solicitacoes.reduce((acc, sol) => acc + parseFloat(sol.valor), 0);
+            
+            doc.fontSize(14).text('Resumo');
+            doc.fontSize(12).text(`Total de Solicitações: ${totalSolicitacoes}`);
+            doc.text(`Valor Total: R$ ${valorTotal.toFixed(2)}`);
+
+            // Configurar resposta
+            res.setHeader('Content-Type', 'application/pdf');
+            res.setHeader('Content-Disposition', `attachment; filename=${filename}`);
+            
+            doc.pipe(res);
+            doc.end();
+        } catch (error) {
+            console.error('Erro ao gerar relatório PDF:', error);
+            res.status(500).json({ error: 'Erro ao gerar relatório PDF' });
         }
     }
 }
