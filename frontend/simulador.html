@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Empréstimos</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #ff7b3e;
+            --secondary-color: #ffb347;
+            --text-color: #333;
+            --background-color: #f5f5f5;
+            --success-color: #28a745;
+            --border-radius: 8px;
+            --box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: var(--primary-color);
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: var(--border-radius);
+            font-size: 16px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .results {
+            margin-top: 30px;
+            padding: 20px;
+            background: var(--background-color);
+            border-radius: var(--border-radius);
+            display: none;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: white;
+            border-radius: var(--border-radius);
+        }
+
+        .whatsapp-button {
+            background: #25d366;
+            margin-top: 20px;
+            width: 100%;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1><i class="fas fa-calculator"></i> Simulador de Empréstimos</h1>
+            <p>Faça sua simulação e receba o resultado no WhatsApp</p>
+        </header>
+
+        <form id="simuladorForm">
+            <div class="form-group">
+                <label for="nome">Nome Completo</label>
+                <input type="text" id="nome" required>
+            </div>
+
+            <div class="form-group">
+                <label for="telefone">WhatsApp</label>
+                <input type="tel" id="telefone" required>
+            </div>
+
+            <div class="form-group">
+                <label for="valor">Valor Desejado</label>
+                <input type="text" id="valor" required>
+            </div>
+
+            <div class="form-group">
+                <label for="tipo">Tipo de Empréstimo</label>
+                <select id="tipo" required>
+                    <option value="">Selecione...</option>
+                    <option value="avulso">Empréstimo Avulso</option>
+                    <option value="parcelado">Empréstimo Parcelado</option>
+                    <option value="cartao">Empréstimo no Cartão</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn">
+                <i class="fas fa-calculator"></i> Simular
+            </button>
+        </form>
+
+        <div id="results" class="results">
+            <h2>Resultado da Simulação</h2>
+            <div class="result-item">
+                <span>Valor Solicitado:</span>
+                <span id="valorSolicitado">R$ 0,00</span>
+            </div>
+            <div class="result-item">
+                <span>Valor dos Juros:</span>
+                <span id="valorJuros">R$ 0,00</span>
+            </div>
+            <div class="result-item">
+                <span>Valor Total:</span>
+                <span id="valorTotal">R$ 0,00</span>
+            </div>
+            <div class="result-item">
+                <span>Valor da Parcela:</span>
+                <span id="valorParcela">R$ 0,00</span>
+            </div>
+
+            <button id="whatsappButton" class="btn whatsapp-button">
+                <i class="fab fa-whatsapp"></i> Receber Proposta no WhatsApp
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Máscara para telefone
+        document.getElementById('telefone').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length > 11) value = value.slice(0, 11);
+            
+            if (value.length > 0) {
+                value = value.replace(/^(\d{2})(\d)/g, '($1) $2');
+                value = value.replace(/(\d{5})(\d)/, '$1-$2');
+            }
+            
+            e.target.value = value;
+        });
+
+        // Máscara para valor
+        document.getElementById('valor').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            value = (parseInt(value) / 100).toFixed(2);
+            
+            if (!isNaN(value)) {
+                value = value.replace('.', ',');
+                value = value.replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.');
+                e.target.value = `R$ ${value}`;
+            }
+        });
+
+        // Função para calcular
+        document.getElementById('simuladorForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const valor = parseFloat(document.getElementById('valor').value.replace(/[^\d,]/g, '').replace(',', '.'));
+            const tipo = document.getElementById('tipo').value;
+            
+            let juros = 0;
+            let parcelas = 1;
+
+            switch (tipo) {
+                case 'avulso':
+                    juros = 0.3; // 30%
+                    break;
+                case 'parcelado':
+                    juros = 0.45; // 45%
+                    parcelas = 6;
+                    break;
+                case 'cartao':
+                    juros = 0.15; // 15%
+                    parcelas = 10;
+                    break;
+            }
+
+            const valorJuros = valor * juros;
+            const valorTotal = valor + valorJuros;
+            const valorParcela = valorTotal / parcelas;
+
+            // Exibir resultados
+            document.getElementById('valorSolicitado').textContent = formatarMoeda(valor);
+            document.getElementById('valorJuros').textContent = formatarMoeda(valorJuros);
+            document.getElementById('valorTotal').textContent = formatarMoeda(valorTotal);
+            document.getElementById('valorParcela').textContent = formatarMoeda(valorParcela);
+            
+            document.getElementById('results').style.display = 'block';
+        });
+
+        // Função para formatar moeda
+        function formatarMoeda(valor) {
+            return valor.toLocaleString('pt-BR', {
+                style: 'currency',
+                currency: 'BRL'
+            });
+        }
+
+        // Enviar para WhatsApp
+        document.getElementById('whatsappButton').addEventListener('click', function() {
+            const nome = document.getElementById('nome').value;
+            const telefone = document.getElementById('telefone').value;
+            const valor = document.getElementById('valor').value;
+            const tipo = document.getElementById('tipo').value;
+            
+            const mensagem = `Olá! Me chamo ${nome} e fiz uma simulação de empréstimo:\n\n` +
+                           `Valor: ${valor}\n` +
+                           `Tipo: ${tipo}\n` +
+                           `Meu telefone: ${telefone}\n\n` +
+                           `Gostaria de mais informações.`;
+
+            const whatsappUrl = `https://wa.me/5521964337550?text=${encodeURIComponent(mensagem)}`;
+            window.open(whatsappUrl, '_blank');
+
+            // Enviar para o servidor
+            fetch('http://seu-servidor.com/api/solicitacoes', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    nome,
+                    telefone,
+                    valor: valor.replace(/[^\d,]/g, '').replace(',', '.'),
+                    tipo,
+                    data_hora: new Date().toISOString()
+                })
+            });
+        });
+    </script>
+</body>
+</html> 

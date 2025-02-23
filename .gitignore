@@ -1,0 +1,36 @@
+# Dependências
+node_modules/
+package-lock.json
+
+# Arquivos de ambiente
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Arquivos do sistema operacional
+.DS_Store
+Thumbs.db
+
+# IDEs e editores
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Arquivos de build
+/dist
+/build
+coverage/
+
+# Arquivos temporários
+*.tmp
+*.temp
+
+# Arquivos de banco de dados
+*.sqlite
+*.db 
