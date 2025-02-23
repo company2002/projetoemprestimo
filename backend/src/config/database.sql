@@ -148,15 +148,33 @@ CREATE TABLE IF NOT EXISTS cliente_medalhas (
     FOREIGN KEY (medalha_id) REFERENCES medalhas(id)
 );
 
--- Inserir usuário master inicial
-INSERT INTO usuarios (nome, email, senha, role, status)
-VALUES (
-    'Carlos Piquet',
-    'carlospiquet2025',
-    '$2a$10$XYZ123ABC456DEF789GHI.abcdefghijklmnopqrstuvwxyz123456789',
-    'master',
-    'aprovado'
-) ON DUPLICATE KEY UPDATE id=id;
+-- Criar tabela de tokens de recuperação de senha
+CREATE TABLE IF NOT EXISTS recuperacao_senha (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    usuario_id INT,
+    cliente_id INT,
+    token VARCHAR(100) NOT NULL,
+    expiracao DATETIME NOT NULL,
+    usado BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id),
+    FOREIGN KEY (cliente_id) REFERENCES clientes(id)
+);
+
+-- Inserir usuário master inicial (senha: admin123)
+INSERT INTO usuarios (nome, email, senha, role, status) VALUES 
+('Administrador Master', 'admin@sistema.com', '$2a$10$XYZ123ABC456DEF789GHI.abcdefghijklmnopqrstuvwxyz123456789', 'master', 'aprovado')
+ON DUPLICATE KEY UPDATE id=id;
+
+-- Inserir operador inicial (senha: operador123)
+INSERT INTO usuarios (nome, email, senha, role, status) VALUES 
+('Operador Padrão', 'operador@sistema.com', '$2a$10$XYZ123ABC456DEF789GHI.abcdefghijklmnopqrstuvwxyz123456789', 'operador', 'aprovado')
+ON DUPLICATE KEY UPDATE id=id;
+
+-- Inserir cliente teste (senha: cliente123)
+INSERT INTO clientes (nome, cpf, email, telefone, data_nascimento, endereco, senha, status) VALUES 
+('Cliente Teste', '123.456.789-00', 'cliente@teste.com', '(21) 98765-4321', '1990-01-01', 'Rua Teste, 123', '$2a$10$XYZ123ABC456DEF789GHI.abcdefghijklmnopqrstuvwxyz123456789', 'ativo')
+ON DUPLICATE KEY UPDATE id=id;
 
 -- Inserir níveis padrão
 INSERT INTO niveis_cliente (nome, score_minimo, desconto_juros, multiplicador_margem, tempo_analise_horas) VALUES

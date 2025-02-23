@@ -3,11 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel Administrativo - Sistema de Empréstimos</title>
+    <title>Área Administrativa - Sistema de Empréstimos</title>
     <link rel="stylesheet" href="../src/styles/main.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
+        .auth-container {
+            max-width: 400px;
+            margin: 100px auto;
+            padding: 30px;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .auth-header h1 {
+            color: var(--primary-color);
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: var(--border-radius);
+            font-size: 16px;
+        }
+
+        .error-message {
+            color: var(--danger-color);
+            text-align: center;
+            margin-top: 10px;
+            display: none;
+        }
+
         .admin-container {
+            display: none;
             padding: 20px;
         }
 
@@ -85,13 +131,89 @@
             flex: 1;
             max-width: 300px;
         }
+
+        .header-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logout-btn {
+            background: var(--danger-color);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+        }
+
+        .link-recuperar-senha {
+            display: block;
+            text-align: right;
+            margin-top: 5px;
+            color: var(--primary-color);
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .link-recuperar-senha:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
-    <div class="admin-container">
-        <header>
+    <!-- Container de Autenticação -->
+    <div id="authContainer" class="auth-container">
+        <div class="auth-header">
+            <h1><i class="fas fa-user-shield"></i> Área Administrativa</h1>
+            <p>Faça login para acessar o painel</p>
+        </div>
+
+        <form id="loginForm" onsubmit="return fazerLogin(event)">
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" required>
+            </div>
+
+            <div class="form-group">
+                <label for="senha">Senha</label>
+                <input type="password" id="senha" required>
+                <div class="error-message" id="senhaError"></div>
+                <a href="#" onclick="solicitarRecuperacaoSenha()" class="link-recuperar-senha">
+                    Esqueceu sua senha?
+                </a>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-sign-in-alt"></i> Entrar
+            </button>
+
+            <div id="errorMessage" class="error-message"></div>
+            
+            <p style="text-align: center; margin-top: 20px;">
+                Não tem uma conta? <a href="cadastro.html" style="color: var(--primary-color); text-decoration: none;">Solicitar acesso</a>
+            </p>
+        </form>
+    </div>
+
+    <!-- Container do Painel Administrativo -->
+    <div id="adminContainer" class="admin-container">
+        <div class="header-actions">
             <h1><i class="fas fa-user-shield"></i> Painel Administrativo</h1>
-        </header>
+            <div class="user-info">
+                <span id="userName">Admin</span>
+                <button onclick="logout()" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i> Sair
+                </button>
+            </div>
+        </div>
 
         <div class="stats-grid">
             <div class="stat-card">
@@ -160,12 +282,90 @@
     </div>
 
     <script>
+        // Verificar autenticação ao carregar a página
+        document.addEventListener('DOMContentLoaded', function() {
+            verificarAuth();
+        });
+
+        // Função para fazer login
+        async function fazerLogin(event) {
+            event.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const senha = document.getElementById('senha').value;
+            const errorMessage = document.getElementById('errorMessage');
+
+            try {
+                const response = await fetch('http://localhost:3000/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, senha })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Verificar se é um usuário admin
+                    if (data.usuario.role !== 'admin' && data.usuario.role !== 'master') {
+                        errorMessage.textContent = 'Acesso não autorizado';
+                        errorMessage.style.display = 'block';
+                        return;
+                    }
+
+                    // Salvar dados do usuário
+                    localStorage.setItem('adminToken', data.token);
+                    localStorage.setItem('adminData', JSON.stringify(data.usuario));
+                    
+                    // Mostrar painel administrativo
+                    document.getElementById('authContainer').style.display = 'none';
+                    document.getElementById('adminContainer').style.display = 'block';
+                    document.getElementById('userName').textContent = data.usuario.nome;
+                    
+                    // Carregar dados
+                    carregarDados();
+                } else {
+                    errorMessage.textContent = data.error || 'Erro ao fazer login';
+                    errorMessage.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                errorMessage.textContent = 'Erro ao conectar com o servidor';
+                errorMessage.style.display = 'block';
+            }
+        }
+
+        // Função para verificar autenticação
+        function verificarAuth() {
+            const token = localStorage.getItem('adminToken');
+            const adminData = localStorage.getItem('adminData');
+
+            if (token && adminData) {
+                const usuario = JSON.parse(adminData);
+                document.getElementById('authContainer').style.display = 'none';
+                document.getElementById('adminContainer').style.display = 'block';
+                document.getElementById('userName').textContent = usuario.nome;
+                carregarDados();
+            } else {
+                document.getElementById('authContainer').style.display = 'block';
+                document.getElementById('adminContainer').style.display = 'none';
+            }
+        }
+
+        // Função para fazer logout
+        function logout() {
+            localStorage.removeItem('adminToken');
+            localStorage.removeItem('adminData');
+            verificarAuth();
+        }
+
         // Função para carregar dados
         async function carregarDados() {
             try {
                 const response = await fetch('http://localhost:3000/api/solicitacoes', {
                     headers: {
-                        'Authorization': 'Bearer ' + localStorage.getItem('token')
+                        'Authorization': 'Bearer ' + localStorage.getItem('adminToken')
                     }
                 });
                 
@@ -254,7 +454,7 @@
             try {
                 const response = await fetch(`http://localhost:3000/api/solicitacoes/relatorio-pdf?dataInicio=${dataInicio}&dataFim=${dataFim}`, {
                     headers: {
-                        'Authorization': 'Bearer ' + localStorage.getItem('token')
+                        'Authorization': 'Bearer ' + localStorage.getItem('adminToken')
                     }
                 });
 
@@ -274,11 +474,38 @@
             }
         }
 
-        // Carregar dados ao iniciar
-        document.addEventListener('DOMContentLoaded', carregarDados);
+        async function solicitarRecuperacaoSenha() {
+            const email = document.getElementById('email').value;
+            
+            if (!email) {
+                alert('Por favor, digite seu email antes de solicitar a recuperação de senha.');
+                return;
+            }
 
-        // Atualizar a cada 5 minutos
-        setInterval(carregarDados, 300000);
+            try {
+                const response = await fetch('http://localhost:3000/api/auth/recuperar-senha', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email,
+                        tipo: 'admin'
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    alert('Um email com instruções para recuperação de senha foi enviado para o seu endereço de email.');
+                } else {
+                    alert(data.error || 'Erro ao solicitar recuperação de senha');
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro ao conectar com o servidor');
+            }
+        }
     </script>
 </body>
 </html> 
