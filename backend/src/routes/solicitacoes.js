@@ -15,4 +15,8 @@ router.get('/:id', SolicitacaoController.buscarPorId);
 router.put('/:id', SolicitacaoController.atualizar);
 router.delete('/:id', SolicitacaoController.excluir);
 
+// Novas rotas
+router.post('/:id/aprovar', SolicitacaoController.aprovar);
+router.post('/:id/atualizar-score', SolicitacaoController.atualizarScorePagamento);
+
 module.exports = router; 

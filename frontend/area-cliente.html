@@ -113,6 +113,40 @@
             color: #004085;
         }
 
+        .status-aprovado {
+            background: #cce5ff;
+            color: #004085;
+        }
+
+        .status-recusado {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-pendente {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .tipo-cliente {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .tipo-PG {
+            background: #28a745;
+            color: white;
+        }
+
+        .tipo-NaoPG {
+            background: #6c757d;
+            color: white;
+        }
+
         .upload-comprovante {
             margin-top: 10px;
         }
@@ -159,7 +193,9 @@
 <body>
     <div class="dashboard">
         <div class="welcome-section">
-            <h1>Bem-vindo(a), <span id="nomeCliente">Cliente</span></h1>
+            <h1>Bem-vindo(a), <span id="nomeCliente">Cliente</span>
+                <span id="tipoCliente" class="tipo-cliente"></span>
+            </h1>
             <p>Aqui você pode acompanhar seus empréstimos e pagamentos</p>
         </div>
 
@@ -182,10 +218,38 @@
             </div>
         </div>
 
+        <div class="status-cards">
+            <div class="status-card">
+                <h3><i class="fas fa-money-bill-wave"></i> Margem Avulso</h3>
+                <div id="margemAvulso">R$ 0,00</div>
+                <small>Empréstimo de 20 a 30 dias</small>
+            </div>
+            <div class="status-card">
+                <h3><i class="fas fa-calendar-alt"></i> Margem Parcelado</h3>
+                <div id="margemParcelado">R$ 0,00</div>
+                <small>Empréstimo em até 10x</small>
+            </div>
+            <div class="status-card">
+                <h3><i class="fas fa-credit-card"></i> Margem Cartão</h3>
+                <div id="margemCartao">R$ 0,00</div>
+                <small>Empréstimo no cartão em até 12x</small>
+            </div>
+        </div>
+
         <div class="emprestimos-section">
             <h2>Meus Empréstimos</h2>
             <div id="listaEmprestimos">
                 <!-- Empréstimos serão inseridos aqui -->
+            </div>
+        </div>
+
+        <div class="emprestimos-section">
+            <h2>Solicitações de Aumento de Margem</h2>
+            <button onclick="abrirModalSolicitacao()" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Nova Solicitação
+            </button>
+            <div id="listaSolicitacoes" class="mt-3">
+                <!-- Solicitações serão inseridas aqui -->
             </div>
         </div>
     </div>
@@ -210,6 +274,34 @@
                     <input type="file" id="comprovante" accept="image/*,.pdf" required>
                 </div>
                 <button type="submit" class="btn btn-primary">Enviar Pagamento</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de Solicitação de Margem -->
+    <div id="modalSolicitacao" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Solicitar Aumento de Margem</h2>
+            <form id="formSolicitacao">
+                <div class="form-group">
+                    <label>Tipo de Margem</label>
+                    <select id="tipoMargem" required>
+                        <option value="avulso">Avulso</option>
+                        <option value="parcelado">Parcelado</option>
+                        <option value="cartao">Cartão</option>
+                        <option value="emergencial">Emergencial</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Valor Solicitado</label>
+                    <input type="text" id="valorSolicitado" required placeholder="R$ 0,00">
+                </div>
+                <div class="form-group">
+                    <label>Motivo da Solicitação</label>
+                    <textarea id="motivoSolicitacao" required rows="4"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Enviar Solicitação</button>
             </form>
         </div>
     </div>
@@ -255,6 +347,19 @@
             document.getElementById('valorTotalDevido').textContent = formatarMoeda(data.valor_total_devido);
             document.getElementById('proximoVencimento').textContent = data.proximo_vencimento ? formatarData(data.proximo_vencimento) : 'Nenhum';
             document.getElementById('scoreCliente').textContent = data.score;
+            
+            // Atualizar margens
+            document.getElementById('margemAvulso').textContent = formatarMoeda(data.margem_avulso);
+            document.getElementById('margemParcelado').textContent = formatarMoeda(data.margem_parcelado);
+            document.getElementById('margemCartao').textContent = formatarMoeda(data.margem_cartao);
+
+            // Atualizar tipo de cliente
+            const tipoClienteElement = document.getElementById('tipoCliente');
+            tipoClienteElement.textContent = data.tipo_cliente;
+            tipoClienteElement.className = `tipo-cliente tipo-${data.tipo_cliente}`;
+
+            // Carregar solicitações
+            carregarSolicitacoes();
         }
 
         // Renderizar empréstimos
@@ -367,6 +472,103 @@
         function formatarData(data) {
             return new Date(data).toLocaleDateString('pt-BR');
         }
+
+        // Carregar solicitações de margem
+        async function carregarSolicitacoes() {
+            try {
+                const response = await fetch(`${API_URL}/api/clientes/${clienteData.id}/solicitacoes-margem`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('clienteToken')}`
+                    }
+                });
+
+                if (response.ok) {
+                    const solicitacoes = await response.json();
+                    renderizarSolicitacoes(solicitacoes);
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+            }
+        }
+
+        // Renderizar solicitações
+        function renderizarSolicitacoes(solicitacoes) {
+            const container = document.getElementById('listaSolicitacoes');
+            container.innerHTML = '';
+
+            solicitacoes.forEach(sol => {
+                const card = document.createElement('div');
+                card.className = 'emprestimo-card';
+                
+                card.innerHTML = `
+                    <div class="emprestimo-header">
+                        <h3>Solicitação de ${sol.tipo_margem.toUpperCase()}</h3>
+                        <span class="status-badge status-${sol.status}">
+                            ${sol.status.toUpperCase()}
+                        </span>
+                    </div>
+                    <div>
+                        <p>Valor Solicitado: ${formatarMoeda(sol.valor_solicitado)}</p>
+                        <p>Data: ${formatarData(sol.created_at)}</p>
+                        <p>Motivo: ${sol.motivo}</p>
+                        ${sol.observacao ? `<p>Observação: ${sol.observacao}</p>` : ''}
+                    </div>
+                `;
+
+                container.appendChild(card);
+            });
+        }
+
+        // Abrir modal de solicitação
+        function abrirModalSolicitacao() {
+            document.getElementById('modalSolicitacao').style.display = 'block';
+        }
+
+        // Máscara para valor solicitado
+        document.getElementById('valorSolicitado').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            value = (parseInt(value) / 100).toFixed(2);
+            
+            if (!isNaN(value)) {
+                value = value.replace('.', ',');
+                value = value.replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.');
+                e.target.value = `R$ ${value}`;
+            }
+        });
+
+        // Enviar solicitação
+        document.getElementById('formSolicitacao').onsubmit = async function(e) {
+            e.preventDefault();
+            
+            const dados = {
+                tipo_margem: document.getElementById('tipoMargem').value,
+                valor_solicitado: desformatarMoeda(document.getElementById('valorSolicitado').value),
+                motivo: document.getElementById('motivoSolicitacao').value
+            };
+
+            try {
+                const response = await fetch(`${API_URL}/api/clientes/${clienteData.id}/solicitacoes-margem`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('clienteToken')}`
+                    },
+                    body: JSON.stringify(dados)
+                });
+
+                if (response.ok) {
+                    alert('Solicitação enviada com sucesso!');
+                    document.getElementById('modalSolicitacao').style.display = 'none';
+                    document.getElementById('formSolicitacao').reset();
+                    carregarSolicitacoes();
+                } else {
+                    alert('Erro ao enviar solicitação');
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro ao enviar solicitação');
+            }
+        };
 
         // Inicialização
         verificarAuth();

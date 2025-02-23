@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS solicitacoes (
     valor_total_pago DECIMAL(10,2) DEFAULT 0,
     valor_restante DECIMAL(10,2) DEFAULT 0,
     status_pagamento ENUM('em_dia', 'atrasado', 'quitado', 'inadimplente') DEFAULT 'em_dia',
+    score_impacto INT DEFAULT 0,
     FOREIGN KEY (cliente_id) REFERENCES clientes(id)
 );
 
@@ -55,7 +56,11 @@ CREATE TABLE IF NOT EXISTS clientes (
     endereco TEXT NOT NULL,
     senha VARCHAR(255) NOT NULL,
     score INT DEFAULT 0,
+    margem_avulso DECIMAL(10,2) DEFAULT 5000.00,
+    margem_parcelado DECIMAL(10,2) DEFAULT 15000.00,
+    margem_cartao DECIMAL(10,2) DEFAULT 10000.00,
     status ENUM('ativo', 'bloqueado', 'inadimplente') DEFAULT 'ativo',
+    tipo_cliente ENUM('PG', 'NaoPG') DEFAULT 'NaoPG',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
@@ -79,6 +84,37 @@ CREATE TABLE IF NOT EXISTS pagamentos (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (solicitacao_id) REFERENCES solicitacoes(id),
     FOREIGN KEY (cliente_id) REFERENCES clientes(id)
+);
+
+-- Criar tabela de solicitações de aumento de margem
+CREATE TABLE IF NOT EXISTS solicitacoes_margem (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    cliente_id INT NOT NULL,
+    tipo_margem ENUM('avulso', 'parcelado', 'cartao', 'emergencial') NOT NULL,
+    valor_solicitado DECIMAL(10,2) NOT NULL,
+    motivo TEXT NOT NULL,
+    status ENUM('pendente', 'aprovado', 'recusado') DEFAULT 'pendente',
+    aprovado_por INT,
+    data_aprovacao DATETIME,
+    observacao TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (cliente_id) REFERENCES clientes(id),
+    FOREIGN KEY (aprovado_por) REFERENCES usuarios(id)
+);
+
+-- Criar tabela de histórico de alterações de margem
+CREATE TABLE IF NOT EXISTS historico_margem (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    cliente_id INT NOT NULL,
+    tipo_margem ENUM('avulso', 'parcelado', 'cartao', 'emergencial') NOT NULL,
+    valor_anterior DECIMAL(10,2) NOT NULL,
+    valor_novo DECIMAL(10,2) NOT NULL,
+    alterado_por INT NOT NULL,
+    motivo TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (cliente_id) REFERENCES clientes(id),
+    FOREIGN KEY (alterado_por) REFERENCES usuarios(id)
 );
 
 -- Inserir usuário master inicial

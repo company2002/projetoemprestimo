@@ -234,11 +234,31 @@
         }
 
         .btn-success {
-            background: #27ae60;
+            background-color: #28a745;
+            color: white;
         }
 
         .btn-danger {
-            background: #c0392b;
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .tipo-cliente-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .tipo-PG {
+            background: #28a745;
+            color: white;
+        }
+
+        .tipo-NaoPG {
+            background: #6c757d;
+            color: white;
         }
     </style>
 </head>
@@ -353,29 +373,55 @@
     </div>
 
     <!-- Modal de Gerenciamento de Clientes -->
-    <div id="clientesModal" class="modal">
+    <div id="gerenciarClientesModal" class="modal">
         <div class="modal-content">
-            <span class="close" onclick="fecharModalClientes()">&times;</span>
-            <h2><i class="fas fa-users"></i> Gerenciar Clientes</h2>
+            <span class="close">&times;</span>
+            <h2>Gerenciar Clientes</h2>
             
             <div class="search-box">
-                <input type="text" id="pesquisaCliente" placeholder="Pesquisar cliente..." onkeyup="filtrarClientes()">
+                <input type="text" id="searchClientes" placeholder="Buscar por nome, CPF ou email..." onkeyup="filtrarClientes()">
             </div>
 
-            <table class="users-table">
-                <thead>
-                    <tr>
-                        <th>Nome</th>
-                        <th>CPF</th>
-                        <th>Score</th>
-                        <th>Status</th>
-                        <th>Ações</th>
-                    </tr>
-                </thead>
-                <tbody id="clientesTable">
-                    <!-- Clientes serão inseridos aqui -->
-                </tbody>
-            </table>
+            <div class="tabs">
+                <button class="tab-btn active" onclick="mudarTab('clientes')">Clientes</button>
+                <button class="tab-btn" onclick="mudarTab('solicitacoes')">Solicitações de Margem</button>
+            </div>
+
+            <div id="clientesTab" class="tab-content active">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>CPF</th>
+                            <th>Score</th>
+                            <th>Tipo</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="clientesTableBody">
+                        <!-- Clientes serão inseridos aqui -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="solicitacoesTab" class="tab-content">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Cliente</th>
+                            <th>Tipo</th>
+                            <th>Valor</th>
+                            <th>Data</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="solicitacoesTableBody">
+                        <!-- Solicitações serão inseridas aqui -->
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
@@ -614,112 +660,222 @@
         }
 
         function mostrarGerenciarClientes() {
-            document.getElementById('clientesModal').style.display = 'block';
+            document.getElementById('gerenciarClientesModal').style.display = 'block';
             carregarClientes();
         }
 
         function fecharModalClientes() {
-            document.getElementById('clientesModal').style.display = 'none';
+            document.getElementById('gerenciarClientesModal').style.display = 'none';
         }
 
-        async function carregarClientes() {
-            try {
-                const response = await fetch(`${API_URL}/api/clientes`, {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
-                });
-
-                if (response.ok) {
-                    const clientes = await response.json();
-                    const tbody = document.getElementById('clientesTable');
-                    tbody.innerHTML = '';
-
-                    clientes.forEach(cliente => {
-                        const tr = document.createElement('tr');
-                        tr.innerHTML = `
-                            <td>${cliente.nome}</td>
-                            <td>${cliente.cpf}</td>
-                            <td>
-                                <input type="number" 
-                                       value="${cliente.score}" 
-                                       min="0" 
-                                       max="1000" 
-                                       onchange="atualizarScore(${cliente.id}, this.value)"
-                                       style="width: 80px">
-                            </td>
-                            <td class="status-${cliente.status}">${cliente.status}</td>
-                            <td>
-                                <button onclick="alterarStatusCliente(${cliente.id}, 'ativo')" 
-                                        class="btn btn-small ${cliente.status === 'ativo' ? 'btn-success' : ''}">
-                                    Ativo
-                                </button>
-                                <button onclick="alterarStatusCliente(${cliente.id}, 'bloqueado')" 
-                                        class="btn btn-small ${cliente.status === 'bloqueado' ? 'btn-danger' : ''}">
-                                    Bloqueado
-                                </button>
-                            </td>
-                        `;
-                        tbody.appendChild(tr);
-                    });
+        function carregarClientes() {
+            fetch(`${API_URL}/api/clientes`, {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }
-            } catch (error) {
-                console.error('Erro ao carregar clientes:', error);
-                alert('Erro ao carregar clientes');
-            }
+            })
+            .then(response => response.json())
+            .then(clientes => {
+                const tbody = document.getElementById('clientesTableBody');
+                tbody.innerHTML = '';
+                
+                clientes.forEach(cliente => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${cliente.nome}</td>
+                        <td>${cliente.cpf}</td>
+                        <td>
+                            <input type="number" value="${cliente.score}" 
+                                   min="0" max="1000" 
+                                   onchange="atualizarScore(${cliente.id}, this.value)">
+                        </td>
+                        <td>
+                            <span class="tipo-cliente-badge tipo-${cliente.tipo_cliente}">
+                                ${cliente.tipo_cliente}
+                            </span>
+                            <button class="btn-small" onclick="alterarTipoCliente(${cliente.id})">
+                                Alterar
+                            </button>
+                        </td>
+                        <td>
+                            <select onchange="alterarStatusCliente(${cliente.id}, this.value)">
+                                <option value="ativo" ${cliente.status === 'ativo' ? 'selected' : ''}>Ativo</option>
+                                <option value="bloqueado" ${cliente.status === 'bloqueado' ? 'selected' : ''}>Bloqueado</option>
+                                <option value="inadimplente" ${cliente.status === 'inadimplente' ? 'selected' : ''}>Inadimplente</option>
+                            </select>
+                        </td>
+                        <td>
+                            <button class="btn-small" onclick="verHistoricoMargem(${cliente.id})">
+                                Ver Histórico
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            });
+
+            carregarSolicitacoesMargem();
         }
 
-        async function atualizarScore(clienteId, novoScore) {
-            try {
-                const response = await fetch(`${API_URL}/api/clientes/${clienteId}/score`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    },
-                    body: JSON.stringify({ score: parseInt(novoScore) })
-                });
-
-                if (response.ok) {
-                    alert('Score atualizado com sucesso!');
-                } else {
-                    alert('Erro ao atualizar score');
-                    carregarClientes(); // Recarrega para restaurar o valor anterior
+        function carregarSolicitacoesMargem() {
+            fetch(`${API_URL}/api/solicitacoes-margem`, {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }
-            } catch (error) {
-                console.error('Erro ao atualizar score:', error);
-                alert('Erro ao atualizar score');
-                carregarClientes();
-            }
+            })
+            .then(response => response.json())
+            .then(solicitacoes => {
+                const tbody = document.getElementById('solicitacoesTableBody');
+                tbody.innerHTML = '';
+                
+                solicitacoes.forEach(sol => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${sol.cliente_nome}</td>
+                        <td>${sol.tipo_margem.toUpperCase()}</td>
+                        <td>${formatarMoeda(sol.valor_solicitado)}</td>
+                        <td>${formatarData(sol.created_at)}</td>
+                        <td>
+                            <span class="status-badge status-${sol.status}">
+                                ${sol.status.toUpperCase()}
+                            </span>
+                        </td>
+                        <td>
+                            ${sol.status === 'pendente' ? `
+                                <button class="btn-small btn-success" onclick="responderSolicitacao(${sol.id}, 'aprovado')">
+                                    Aprovar
+                                </button>
+                                <button class="btn-small btn-danger" onclick="responderSolicitacao(${sol.id}, 'recusado')">
+                                    Recusar
+                                </button>
+                            ` : ''}
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            });
         }
 
-        async function alterarStatusCliente(clienteId, novoStatus) {
-            try {
-                const response = await fetch(`${API_URL}/api/clientes/${clienteId}/status`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    },
-                    body: JSON.stringify({ status: novoStatus })
-                });
+        function mudarTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(`${tab}Tab`).classList.add('active');
+        }
 
+        function alterarTipoCliente(clienteId) {
+            if (!isMaster()) {
+                alert('Apenas usuários master podem alterar o tipo do cliente');
+                return;
+            }
+
+            const novoTipo = prompt('Digite o novo tipo (PG ou NaoPG):');
+            if (!novoTipo || !['PG', 'NaoPG'].includes(novoTipo)) {
+                alert('Tipo inválido');
+                return;
+            }
+
+            fetch(`${API_URL}/api/clientes/${clienteId}/tipo`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({ tipo: novoTipo })
+            })
+            .then(response => {
                 if (response.ok) {
-                    alert('Status do cliente atualizado com sucesso!');
+                    alert('Tipo do cliente atualizado com sucesso');
                     carregarClientes();
                 } else {
-                    alert('Erro ao atualizar status do cliente');
+                    alert('Erro ao atualizar tipo do cliente');
                 }
-            } catch (error) {
-                console.error('Erro ao atualizar status:', error);
-                alert('Erro ao atualizar status do cliente');
+            });
+        }
+
+        function responderSolicitacao(solicitacaoId, resposta) {
+            if (!isMaster()) {
+                alert('Apenas usuários master podem responder solicitações');
+                return;
             }
+
+            const observacao = prompt('Digite uma observação para a resposta:');
+            
+            fetch(`${API_URL}/api/solicitacoes-margem/${solicitacaoId}/responder`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({ 
+                    status: resposta,
+                    observacao
+                })
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert('Solicitação respondida com sucesso');
+                    carregarSolicitacoesMargem();
+                } else {
+                    alert('Erro ao responder solicitação');
+                }
+            });
+        }
+
+        function verHistoricoMargem(clienteId) {
+            fetch(`${API_URL}/api/clientes/${clienteId}/historico-margem`, {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            })
+            .then(response => response.json())
+            .then(historico => {
+                let html = '<h3>Histórico de Alterações de Margem</h3>';
+                
+                historico.forEach(h => {
+                    html += `
+                        <div class="historico-item">
+                            <p><strong>${h.tipo_margem.toUpperCase()}</strong></p>
+                            <p>De: ${formatarMoeda(h.valor_anterior)} → Para: ${formatarMoeda(h.valor_novo)}</p>
+                            <p>Motivo: ${h.motivo}</p>
+                            <p>Data: ${formatarData(h.created_at)}</p>
+                        </div>
+                    `;
+                });
+
+                const modal = document.createElement('div');
+                modal.className = 'modal';
+                modal.innerHTML = `
+                    <div class="modal-content">
+                        <span class="close" onclick="this.parentElement.parentElement.remove()">&times;</span>
+                        ${html}
+                    </div>
+                `;
+
+                document.body.appendChild(modal);
+                modal.style.display = 'block';
+            });
+        }
+
+        function isMaster() {
+            const userData = JSON.parse(localStorage.getItem('userData'));
+            return userData && userData.role === 'master';
+        }
+
+        function formatarMoeda(valor) {
+            return 'R$ ' + valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+        }
+
+        function formatarData(data) {
+            const date = new Date(data);
+            return date.toLocaleDateString('pt-BR');
         }
 
         function filtrarClientes() {
-            const input = document.getElementById('pesquisaCliente');
+            const input = document.getElementById('searchClientes');
             const filtro = input.value.toLowerCase();
-            const linhas = document.getElementById('clientesTable').getElementsByTagName('tr');
+            const linhas = document.getElementById('clientesTableBody').getElementsByTagName('tr');
 
             for (let linha of linhas) {
                 const nome = linha.cells[0].textContent.toLowerCase();

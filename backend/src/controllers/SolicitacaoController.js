@@ -200,6 +200,155 @@ class SolicitacaoController {
             res.status(500).json({ error: 'Erro ao gerar relatório PDF' });
         }
     }
+
+    async aprovar(req, res) {
+        try {
+            const { id } = req.params;
+            const solicitacao = await getOne('SELECT * FROM solicitacoes WHERE id = ?', [id]);
+            
+            if (!solicitacao) {
+                return res.status(404).json({ error: 'Solicitação não encontrada' });
+            }
+
+            // Atualizar status da solicitação
+            await runQuery(
+                'UPDATE solicitacoes SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+                ['aprovado', id]
+            );
+
+            // Buscar cliente
+            const cliente = await getOne('SELECT * FROM clientes WHERE id = ?', [solicitacao.cliente_id]);
+            
+            if (!cliente) {
+                return res.status(404).json({ error: 'Cliente não encontrado' });
+            }
+
+            // Calcular impacto no score e margens
+            let novoScore = cliente.score;
+            let novaMargemAvulso = cliente.margem_avulso;
+            let novaMargemParcelado = cliente.margem_parcelado;
+            let novaMargemCartao = cliente.margem_cartao;
+            let scoreImpacto = 0;
+
+            // Reduzir margem baseado no tipo de empréstimo
+            switch (solicitacao.tipo) {
+                case 'avulso':
+                    novaMargemAvulso -= solicitacao.valor;
+                    scoreImpacto = -10;
+                    break;
+                case 'parcelado':
+                    novaMargemParcelado -= solicitacao.valor;
+                    scoreImpacto = -15;
+                    break;
+                case 'cartao':
+                    novaMargemCartao -= solicitacao.valor;
+                    scoreImpacto = -20;
+                    break;
+            }
+
+            // Atualizar score e margens do cliente
+            novoScore = Math.max(0, novoScore + scoreImpacto);
+            novaMargemAvulso = Math.max(0, novaMargemAvulso);
+            novaMargemParcelado = Math.max(0, novaMargemParcelado);
+            novaMargemCartao = Math.max(0, novaMargemCartao);
+
+            await runQuery(
+                `UPDATE clientes 
+                SET score = ?, 
+                    margem_avulso = ?,
+                    margem_parcelado = ?,
+                    margem_cartao = ?,
+                    updated_at = CURRENT_TIMESTAMP 
+                WHERE id = ?`,
+                [novoScore, novaMargemAvulso, novaMargemParcelado, novaMargemCartao, cliente.id]
+            );
+
+            // Atualizar score_impacto na solicitação
+            await runQuery(
+                'UPDATE solicitacoes SET score_impacto = ? WHERE id = ?',
+                [scoreImpacto, id]
+            );
+
+            res.json({ 
+                message: 'Solicitação aprovada com sucesso',
+                novoScore,
+                novasMargens: {
+                    avulso: novaMargemAvulso,
+                    parcelado: novaMargemParcelado,
+                    cartao: novaMargemCartao
+                }
+            });
+        } catch (error) {
+            console.error('Erro ao aprovar solicitação:', error);
+            res.status(500).json({ error: 'Erro ao aprovar solicitação' });
+        }
+    }
+
+    async atualizarScorePagamento(req, res) {
+        try {
+            const { id } = req.params;
+            const solicitacao = await getOne('SELECT * FROM solicitacoes WHERE id = ?', [id]);
+            
+            if (!solicitacao) {
+                return res.status(404).json({ error: 'Solicitação não encontrada' });
+            }
+
+            const cliente = await getOne('SELECT * FROM clientes WHERE id = ?', [solicitacao.cliente_id]);
+            
+            if (!cliente) {
+                return res.status(404).json({ error: 'Cliente não encontrado' });
+            }
+
+            // Aumentar score baseado no pagamento em dia
+            let scoreBonus = 0;
+            if (solicitacao.status_pagamento === 'em_dia') {
+                scoreBonus = 5; // +5 pontos por pagamento em dia
+            } else if (solicitacao.status_pagamento === 'quitado') {
+                scoreBonus = 20; // +20 pontos por empréstimo quitado
+                
+                // Restaurar margens quando o empréstimo for quitado
+                let novaMargemAvulso = cliente.margem_avulso;
+                let novaMargemParcelado = cliente.margem_parcelado;
+                let novaMargemCartao = cliente.margem_cartao;
+
+                switch (solicitacao.tipo) {
+                    case 'avulso':
+                        novaMargemAvulso += solicitacao.valor;
+                        break;
+                    case 'parcelado':
+                        novaMargemParcelado += solicitacao.valor;
+                        break;
+                    case 'cartao':
+                        novaMargemCartao += solicitacao.valor;
+                        break;
+                }
+
+                await runQuery(
+                    `UPDATE clientes 
+                    SET margem_avulso = ?,
+                        margem_parcelado = ?,
+                        margem_cartao = ?
+                    WHERE id = ?`,
+                    [novaMargemAvulso, novaMargemParcelado, novaMargemCartao, cliente.id]
+                );
+            }
+
+            // Atualizar score do cliente
+            const novoScore = Math.min(1000, cliente.score + scoreBonus);
+            await runQuery(
+                'UPDATE clientes SET score = ? WHERE id = ?',
+                [novoScore, cliente.id]
+            );
+
+            res.json({
+                message: 'Score atualizado com sucesso',
+                novoScore
+            });
+        } catch (error) {
+            console.error('Erro ao atualizar score:', error);
+            res.status(500).json({ error: 'Erro ao atualizar score' });
+        }
+    }
 }
 
 module.exports = new SolicitacaoController(); 
