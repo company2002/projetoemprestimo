@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Master - Sistema de Empréstimos</title>
+    <link rel="stylesheet" href="../src/styles/main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .dashboard {
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            background: white;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .menu {
+            display: flex;
+            gap: 20px;
+        }
+
+        .menu a {
+            color: var(--text-color);
+            text-decoration: none;
+            padding: 10px;
+            border-radius: var(--border-radius);
+            transition: background-color 0.3s;
+        }
+
+        .menu a:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+        }
+
+        .card h2 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .table-container {
+            background: white;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-small {
+            padding: 5px 10px;
+            font-size: 14px;
+        }
+
+        .status-badge {
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-ativo { background: #d4edda; color: #155724; }
+        .status-inativo { background: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <header class="header">
+            <div class="user-info">
+                <i class="fas fa-user-shield"></i>
+                <span id="userName">Carregando...</span>
+            </div>
+            <nav class="menu">
+                <a href="#" onclick="mostrarSecao('usuarios')"><i class="fas fa-users"></i> Usuários</a>
+                <a href="#" onclick="mostrarSecao('configuracoes')"><i class="fas fa-cog"></i> Configurações</a>
+                <a href="#" onclick="mostrarSecao('logs')"><i class="fas fa-list"></i> Logs</a>
+                <a href="#" onclick="fazerLogout()"><i class="fas fa-sign-out-alt"></i> Sair</a>
+            </nav>
+        </header>
+
+        <div class="content">
+            <div class="card">
+                <h2><i class="fas fa-users"></i> Usuários</h2>
+                <p>Total de usuários: <span id="totalUsuarios">0</span></p>
+                <p>Aguardando aprovação: <span id="usuariosPendentes">0</span></p>
+            </div>
+
+            <div class="card">
+                <h2><i class="fas fa-chart-line"></i> Atividade</h2>
+                <p>Logs hoje: <span id="logsHoje">0</span></p>
+                <p>Operações críticas: <span id="opsCriticas">0</span></p>
+            </div>
+
+            <div class="card">
+                <h2><i class="fas fa-database"></i> Sistema</h2>
+                <p>Último backup: <span id="ultimoBackup">-</span></p>
+                <p>Status: <span id="statusSistema">Online</span></p>
+            </div>
+        </div>
+
+        <div id="secaoUsuarios" class="table-container">
+            <h2>Gerenciamento de Usuários</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>Email</th>
+                        <th>Tipo</th>
+                        <th>Status</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="tabelaUsuarios">
+                    <!-- Preenchido via JavaScript -->
+                </tbody>
+            </table>
+        </div>
+
+        <div id="secaoConfiguracoes" class="table-container" style="display: none;">
+            <h2>Configurações do Sistema</h2>
+            <form id="configForm">
+                <div class="form-group">
+                    <label>Backup Automático</label>
+                    <select id="backupFrequencia">
+                        <option value="diario">Diário</option>
+                        <option value="semanal">Semanal</option>
+                        <option value="mensal">Mensal</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Retenção de Logs (dias)</label>
+                    <input type="number" id="retencaoLogs" min="1" max="365">
+                </div>
+
+                <button type="submit" class="btn btn-primary">Salvar Configurações</button>
+            </form>
+        </div>
+
+        <div id="secaoLogs" class="table-container" style="display: none;">
+            <h2>Logs do Sistema</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Data/Hora</th>
+                        <th>Tipo</th>
+                        <th>Descrição</th>
+                        <th>Usuário</th>
+                    </tr>
+                </thead>
+                <tbody id="tabelaLogs">
+                    <!-- Preenchido via JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Verificar autenticação
+        function verificarAuth() {
+            const token = localStorage.getItem('token');
+            const usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
+
+            if (!token || usuario.role !== 'master') {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            document.getElementById('userName').textContent = usuario.nome;
+        }
+
+        // Carregar dados iniciais
+        async function carregarDados() {
+            try {
+                const token = localStorage.getItem('token');
+                
+                // Carregar estatísticas
+                const statsResponse = await fetch('http://localhost:3000/api/master/stats', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const stats = await statsResponse.json();
+
+                document.getElementById('totalUsuarios').textContent = stats.totalUsuarios;
+                document.getElementById('usuariosPendentes').textContent = stats.usuariosPendentes;
+                document.getElementById('logsHoje').textContent = stats.logsHoje;
+                document.getElementById('opsCriticas').textContent = stats.opsCriticas;
+                document.getElementById('ultimoBackup').textContent = stats.ultimoBackup;
+
+                // Carregar usuários
+                await carregarUsuarios();
+
+                // Carregar logs
+                await carregarLogs();
+
+                // Carregar configurações
+                await carregarConfiguracoes();
+            } catch (error) {
+                console.error('Erro ao carregar dados:', error);
+                alert('Erro ao carregar dados do sistema');
+            }
+        }
+
+        // Carregar usuários
+        async function carregarUsuarios() {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('http://localhost:3000/api/master/usuarios', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const usuarios = await response.json();
+
+                const tbody = document.getElementById('tabelaUsuarios');
+                tbody.innerHTML = '';
+
+                usuarios.forEach(usuario => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${usuario.nome}</td>
+                        <td>${usuario.email}</td>
+                        <td>${usuario.role}</td>
+                        <td><span class="status-badge status-${usuario.status === 'ativo' ? 'ativo' : 'inativo'}">${usuario.status}</span></td>
+                        <td>
+                            <div class="btn-group">
+                                <button onclick="alterarStatus(${usuario.id})" class="btn btn-small btn-primary">
+                                    ${usuario.status === 'ativo' ? 'Desativar' : 'Ativar'}
+                                </button>
+                                <button onclick="excluirUsuario(${usuario.id})" class="btn btn-small btn-danger">
+                                    Excluir
+                                </button>
+                            </div>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (error) {
+                console.error('Erro ao carregar usuários:', error);
+            }
+        }
+
+        // Carregar logs
+        async function carregarLogs() {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('http://localhost:3000/api/master/logs', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const logs = await response.json();
+
+                const tbody = document.getElementById('tabelaLogs');
+                tbody.innerHTML = '';
+
+                logs.forEach(log => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${new Date(log.data_hora).toLocaleString()}</td>
+                        <td>${log.tipo}</td>
+                        <td>${log.descricao}</td>
+                        <td>${log.usuario}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (error) {
+                console.error('Erro ao carregar logs:', error);
+            }
+        }
+
+        // Carregar configurações
+        async function carregarConfiguracoes() {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('http://localhost:3000/api/master/configuracoes', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const config = await response.json();
+
+                document.getElementById('backupFrequencia').value = config.backupFrequencia;
+                document.getElementById('retencaoLogs').value = config.retencaoLogs;
+            } catch (error) {
+                console.error('Erro ao carregar configurações:', error);
+            }
+        }
+
+        // Alterar status do usuário
+        async function alterarStatus(userId) {
+            if (!confirm('Deseja realmente alterar o status deste usuário?')) return;
+
+            try {
+                const token = localStorage.getItem('token');
+                await fetch(`http://localhost:3000/api/master/usuarios/${userId}/status`, {
+                    method: 'PUT',
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                await carregarUsuarios();
+            } catch (error) {
+                console.error('Erro ao alterar status:', error);
+                alert('Erro ao alterar status do usuário');
+            }
+        }
+
+        // Excluir usuário
+        async function excluirUsuario(userId) {
+            if (!confirm('Deseja realmente excluir este usuário?')) return;
+
+            try {
+                const token = localStorage.getItem('token');
+                await fetch(`http://localhost:3000/api/master/usuarios/${userId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                await carregarUsuarios();
+            } catch (error) {
+                console.error('Erro ao excluir usuário:', error);
+                alert('Erro ao excluir usuário');
+            }
+        }
+
+        // Mostrar seção
+        function mostrarSecao(secao) {
+            document.getElementById('secaoUsuarios').style.display = 'none';
+            document.getElementById('secaoConfiguracoes').style.display = 'none';
+            document.getElementById('secaoLogs').style.display = 'none';
+
+            document.getElementById(`secao${secao.charAt(0).toUpperCase() + secao.slice(1)}`).style.display = 'block';
+        }
+
+        // Fazer logout
+        function fazerLogout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('usuario');
+            window.location.href = 'index.html';
+        }
+
+        // Inicialização
+        verificarAuth();
+        carregarDados();
+
+        // Configurar formulário
+        document.getElementById('configForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            try {
+                const token = localStorage.getItem('token');
+                await fetch('http://localhost:3000/api/master/configuracoes', {
+                    method: 'PUT',
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        backupFrequencia: document.getElementById('backupFrequencia').value,
+                        retencaoLogs: document.getElementById('retencaoLogs').value
+                    })
+                });
+
+                alert('Configurações salvas com sucesso!');
+            } catch (error) {
+                console.error('Erro ao salvar configurações:', error);
+                alert('Erro ao salvar configurações');
+            }
+        });
+    </script>
+</body>
+</html> 
