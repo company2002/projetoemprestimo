@@ -249,6 +249,9 @@
     </a>
 
     <script>
+        // Configuração da API
+        const API_URL = 'https://sistema-emprestimo.onrender.com';
+
         // Máscara para telefone
         document.getElementById('telefone').addEventListener('input', function(e) {
             let value = e.target.value.replace(/\D/g, '');
@@ -310,6 +313,21 @@
             
             document.getElementById('results').style.display = 'block';
             document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+
+            // Enviar para o servidor
+            fetch(`${API_URL}/api/solicitacoes`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    nome: document.getElementById('nome').value,
+                    telefone: document.getElementById('telefone').value,
+                    valor: valor.replace(/[^\d,]/g, '').replace(',', '.'),
+                    tipo,
+                    data_hora: new Date().toISOString()
+                })
+            });
         });
 
         // Função para formatar moeda
