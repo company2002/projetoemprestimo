@@ -21,7 +21,15 @@ CREATE TABLE IF NOT EXISTS solicitacoes (
     observacao TEXT,
     status ENUM('pendente', 'aprovado', 'recusado') DEFAULT 'pendente',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    cliente_id INT,
+    parcelas_pagas INT DEFAULT 0,
+    parcelas_restantes INT DEFAULT 0,
+    proxima_parcela DATE,
+    valor_total_pago DECIMAL(10,2) DEFAULT 0,
+    valor_restante DECIMAL(10,2) DEFAULT 0,
+    status_pagamento ENUM('em_dia', 'atrasado', 'quitado', 'inadimplente') DEFAULT 'em_dia',
+    FOREIGN KEY (cliente_id) REFERENCES clientes(id)
 );
 
 -- Criar tabela de usuários
@@ -34,6 +42,43 @@ CREATE TABLE IF NOT EXISTS usuarios (
     status ENUM('pendente', 'aprovado', 'recusado') DEFAULT 'pendente',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Criar tabela de clientes
+CREATE TABLE IF NOT EXISTS clientes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    cpf VARCHAR(14) UNIQUE NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    telefone VARCHAR(20) NOT NULL,
+    data_nascimento DATE NOT NULL,
+    endereco TEXT NOT NULL,
+    senha VARCHAR(255) NOT NULL,
+    score INT DEFAULT 0,
+    status ENUM('ativo', 'bloqueado', 'inadimplente') DEFAULT 'ativo',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Criar tabela de controle de pagamentos
+CREATE TABLE IF NOT EXISTS pagamentos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    solicitacao_id INT NOT NULL,
+    cliente_id INT NOT NULL,
+    numero_parcela INT NOT NULL,
+    valor_parcela DECIMAL(10,2) NOT NULL,
+    data_vencimento DATE NOT NULL,
+    data_pagamento DATE,
+    valor_pago DECIMAL(10,2),
+    juros_atraso DECIMAL(10,2) DEFAULT 0,
+    status ENUM('pendente', 'pago', 'atrasado', 'negociado') DEFAULT 'pendente',
+    forma_pagamento VARCHAR(50),
+    comprovante_url TEXT,
+    observacao TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (solicitacao_id) REFERENCES solicitacoes(id),
+    FOREIGN KEY (cliente_id) REFERENCES clientes(id)
 );
 
 -- Inserir usuário master inicial
