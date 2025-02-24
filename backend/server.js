@@ -39,7 +39,8 @@ app.use(express.static(path.join(__dirname, '../frontend')));
 
 // Logging middleware
 app.use((req, res, next) => {
-    console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+    console.log(`[${process.env.NODE_ENV}] ${new Date().toISOString()} - ${req.method} ${req.url}`);
+    console.log('Headers:', req.headers);
     next();
 });
 
@@ -56,20 +57,25 @@ app.use('/api/solicitacoes', solicitacoesRoutes);
 
 // Rota de teste/status
 app.get('/status', (req, res) => {
+    console.log('Status check requested');
     res.json({ 
         status: 'online', 
         timestamp: new Date(),
         env: process.env.NODE_ENV,
-        port: process.env.PORT
+        port: process.env.PORT,
+        node_version: process.version,
+        memory_usage: process.memoryUsage()
     });
 });
 
 // Rota raiz
 app.get('/', (req, res) => {
+    console.log('Root route requested');
     res.json({ 
         message: 'API do Sistema de Empréstimos',
         status: 'online',
         version: '1.0.0',
+        env: process.env.NODE_ENV,
         endpoints: {
             auth: '/api/auth',
             clientes: '/api/clientes',
@@ -81,6 +87,7 @@ app.get('/', (req, res) => {
 
 // Tratamento de rotas não encontradas
 app.use((req, res) => {
+    console.log('404 - Rota não encontrada:', req.url);
     res.status(404).json({ 
         error: 'Rota não encontrada',
         path: req.url,
@@ -98,9 +105,26 @@ app.use((err, req, res, next) => {
 });
 
 // Iniciar servidor
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 10000;
+
+// Verificar se a porta está em uso
 const server = app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Servidor rodando na porta ${PORT}`);
+    console.log('=================================');
+    console.log(`Servidor iniciado com sucesso`);
     console.log(`Ambiente: ${process.env.NODE_ENV}`);
-    console.log(`URL: http://localhost:${PORT}`);
+    console.log(`Porta: ${PORT}`);
+    console.log(`Node Version: ${process.version}`);
+    console.log(`Memória: ${JSON.stringify(process.memoryUsage())}`);
+    console.log('=================================');
+}).on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+        console.error(`Porta ${PORT} já está em uso. Tentando outra porta...`);
+        server.close();
+        const newPort = PORT + 1;
+        app.listen(newPort, '0.0.0.0', () => {
+            console.log(`Servidor rodando na nova porta ${newPort}`);
+        });
+    } else {
+        console.error('Erro ao iniciar servidor:', err);
+    }
 }); 
