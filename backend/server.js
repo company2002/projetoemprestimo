@@ -19,7 +19,8 @@ const corsOptions = {
         'http://localhost:3000',
         'http://localhost:5000',
         'http://localhost:3001',
-        'http://127.0.0.1:5500'
+        'http://127.0.0.1:5500',
+        'https://sistema-emprestimo.onrender.com'
     ],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
@@ -36,6 +37,12 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // Servir arquivos estáticos
 app.use(express.static(path.join(__dirname, '../frontend')));
 
+// Logging middleware
+app.use((req, res, next) => {
+    console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+    next();
+});
+
 // Diretório para logs
 const logDir = path.join(__dirname, 'logs');
 if (!require('fs').existsSync(logDir)) {
@@ -49,7 +56,12 @@ app.use('/api/solicitacoes', solicitacoesRoutes);
 
 // Rota de teste/status
 app.get('/status', (req, res) => {
-    res.json({ status: 'online', timestamp: new Date() });
+    res.json({ 
+        status: 'online', 
+        timestamp: new Date(),
+        env: process.env.NODE_ENV,
+        port: process.env.PORT
+    });
 });
 
 // Rota raiz
@@ -57,11 +69,22 @@ app.get('/', (req, res) => {
     res.json({ 
         message: 'API do Sistema de Empréstimos',
         status: 'online',
+        version: '1.0.0',
         endpoints: {
             auth: '/api/auth',
             clientes: '/api/clientes',
-            solicitacoes: '/api/solicitacoes'
+            solicitacoes: '/api/solicitacoes',
+            status: '/status'
         }
+    });
+});
+
+// Tratamento de rotas não encontradas
+app.use((req, res) => {
+    res.status(404).json({ 
+        error: 'Rota não encontrada',
+        path: req.url,
+        method: req.method
     });
 });
 
@@ -76,7 +99,8 @@ app.use((err, req, res, next) => {
 
 // Iniciar servidor
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
+const server = app.listen(PORT, '0.0.0.0', () => {
     console.log(`Servidor rodando na porta ${PORT}`);
     console.log(`Ambiente: ${process.env.NODE_ENV}`);
+    console.log(`URL: http://localhost:${PORT}`);
 }); 

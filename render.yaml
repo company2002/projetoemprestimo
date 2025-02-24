@@ -2,8 +2,12 @@ services:
   - type: web
     name: sistema-emprestimo
     env: node
+    region: oregon
+    plan: free
     buildCommand: npm install
-    startCommand: node backend/server.js
+    startCommand: npm start
+    healthCheckPath: /status
+    autoDeploy: true
     envVars:
       - key: NODE_ENV
         value: production
