@@ -33,13 +33,16 @@ app.use(cors(corsOptions));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
+// Servir arquivos estáticos
+app.use(express.static(path.join(__dirname, '../frontend')));
+
 // Diretório para logs
 const logDir = path.join(__dirname, 'logs');
 if (!require('fs').existsSync(logDir)) {
     require('fs').mkdirSync(logDir);
 }
 
-// Rotas
+// Rotas API
 app.use('/api/auth', authRoutes);
 app.use('/api/clientes', clientesRoutes);
 app.use('/api/solicitacoes', solicitacoesRoutes);
@@ -47,6 +50,19 @@ app.use('/api/solicitacoes', solicitacoesRoutes);
 // Rota de teste/status
 app.get('/status', (req, res) => {
     res.json({ status: 'online', timestamp: new Date() });
+});
+
+// Rota raiz
+app.get('/', (req, res) => {
+    res.json({ 
+        message: 'API do Sistema de Empréstimos',
+        status: 'online',
+        endpoints: {
+            auth: '/api/auth',
+            clientes: '/api/clientes',
+            solicitacoes: '/api/solicitacoes'
+        }
+    });
 });
 
 // Tratamento de erros
