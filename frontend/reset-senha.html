@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redefinir Senha - Área do Cliente</title>
+    <link rel="stylesheet" href="src/styles/main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .auth-container {
+            max-width: 400px;
+            margin: 100px auto;
+            padding: 30px;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .auth-header h1 {
+            color: var(--primary-color);
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: var(--border-radius);
+            font-size: 16px;
+        }
+
+        .error-message {
+            color: var(--danger-color);
+            text-align: center;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .success-message {
+            color: var(--success-color);
+            text-align: center;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .password-strength {
+            margin-top: 5px;
+            font-size: 14px;
+        }
+
+        .strength-weak { color: #dc3545; }
+        .strength-medium { color: #ffc107; }
+        .strength-strong { color: #28a745; }
+
+        .btn-voltar {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        .btn-voltar:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-header">
+            <h1><i class="fas fa-key"></i> Redefinir Senha</h1>
+            <p>Digite sua nova senha</p>
+        </div>
+
+        <form id="resetForm" onsubmit="return resetarSenha(event)">
+            <div class="form-group">
+                <label for="senha">Nova Senha</label>
+                <input type="password" id="senha" required onkeyup="verificarForcaSenha()">
+                <div class="password-strength" id="forcaSenha"></div>
+                <div class="error-message" id="senhaError"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="confirmarSenha">Confirmar Nova Senha</label>
+                <input type="password" id="confirmarSenha" required>
+                <div class="error-message" id="confirmarSenhaError"></div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Salvar Nova Senha
+            </button>
+
+            <div id="successMessage" class="success-message"></div>
+            <div id="errorMessage" class="error-message"></div>
+
+            <a href="index.html" class="btn-voltar">
+                <i class="fas fa-arrow-left"></i> Voltar para a página inicial
+            </a>
+        </form>
+    </div>
+
+    <script>
+        // Função para verificar força da senha
+        function verificarForcaSenha() {
+            const senha = document.getElementById('senha').value;
+            const forcaSenha = document.getElementById('forcaSenha');
+            
+            // Critérios
+            const temNumero = /[0-9]/.test(senha);
+            const temLetraMinuscula = /[a-z]/.test(senha);
+            const temLetraMaiuscula = /[A-Z]/.test(senha);
+            const temCaracterEspecial = /[!@#$%^&*]/.test(senha);
+            const tamanhoMinimo = senha.length >= 8;
+
+            let forca = 0;
+            if (temNumero) forca++;
+            if (temLetraMinuscula) forca++;
+            if (temLetraMaiuscula) forca++;
+            if (temCaracterEspecial) forca++;
+            if (tamanhoMinimo) forca++;
+
+            // Exibir resultado
+            if (senha.length === 0) {
+                forcaSenha.textContent = '';
+                forcaSenha.className = 'password-strength';
+            } else if (forca < 3) {
+                forcaSenha.textContent = 'Senha fraca';
+                forcaSenha.className = 'password-strength strength-weak';
+            } else if (forca < 4) {
+                forcaSenha.textContent = 'Senha média';
+                forcaSenha.className = 'password-strength strength-medium';
+            } else {
+                forcaSenha.textContent = 'Senha forte';
+                forcaSenha.className = 'password-strength strength-strong';
+            }
+        }
+
+        async function resetarSenha(event) {
+            event.preventDefault();
+
+            // Limpar mensagens
+            document.querySelectorAll('.error-message').forEach(el => el.style.display = 'none');
+            document.getElementById('successMessage').style.display = 'none';
+
+            const senha = document.getElementById('senha').value;
+            const confirmarSenha = document.getElementById('confirmarSenha').value;
+
+            // Validar senhas
+            if (senha !== confirmarSenha) {
+                document.getElementById('confirmarSenhaError').textContent = 'As senhas não coincidem';
+                document.getElementById('confirmarSenhaError').style.display = 'block';
+                return false;
+            }
+
+            // Obter token da URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const token = urlParams.get('token');
+
+            if (!token) {
+                document.getElementById('errorMessage').textContent = 'Token não encontrado';
+                document.getElementById('errorMessage').style.display = 'block';
+                return false;
+            }
+
+            try {
+                const response = await fetch('http://localhost:3000/api/auth/resetar-senha', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        token,
+                        novaSenha: senha,
+                        tipo: 'cliente'
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    document.getElementById('successMessage').textContent = 'Senha atualizada com sucesso!';
+                    document.getElementById('successMessage').style.display = 'block';
+                    document.getElementById('resetForm').reset();
+                    
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 3000);
+                } else {
+                    document.getElementById('errorMessage').textContent = data.error || 'Erro ao resetar senha';
+                    document.getElementById('errorMessage').style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                document.getElementById('errorMessage').textContent = 'Erro ao conectar com o servidor';
+                document.getElementById('errorMessage').style.display = 'block';
+            }
+
+            return false;
+        }
+    </script>
+</body>
+</html> 

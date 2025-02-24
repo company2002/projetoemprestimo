@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema Administrativo - Login</title>
+    <link rel="stylesheet" href="../frontend/src/styles/main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .admin-container {
+            max-width: 1200px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+
+        .admin-header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .admin-header h1 {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+        }
+
+        .admin-header p {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+        }
+
+        .login-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+
+        .login-card {
+            background: white;
+            padding: 30px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            text-align: center;
+            transition: transform var(--transition-speed) var(--transition-timing);
+        }
+
+        .login-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .login-card i {
+            font-size: 48px;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+        }
+
+        .login-card h2 {
+            color: var(--text-primary);
+            margin-bottom: 15px;
+        }
+
+        .login-card p {
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 50px;
+            padding: 20px;
+            color: var(--text-secondary);
+        }
+
+        .credentials {
+            margin-top: 30px;
+            padding: 20px;
+            background: var(--bg-secondary);
+            border-radius: var(--border-radius);
+            text-align: center;
+        }
+
+        .credentials h3 {
+            color: var(--text-primary);
+            margin-bottom: 15px;
+        }
+
+        .credentials p {
+            color: var(--text-secondary);
+            margin: 5px 0;
+        }
+
+        .credentials code {
+            background: var(--bg-tertiary);
+            padding: 5px 10px;
+            border-radius: var(--border-radius);
+            font-family: monospace;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <header class="admin-header">
+            <h1>Sistema Administrativo</h1>
+            <p>Área restrita para administradores e master</p>
+        </header>
+
+        <div class="login-options">
+            <!-- Login Admin -->
+            <div class="login-card">
+                <i class="fas fa-user-tie"></i>
+                <h2>Administrador</h2>
+                <p>Acesso ao painel de gerenciamento de clientes e solicitações</p>
+                <a href="admin/login.html" class="btn btn-primary">
+                    Login Administrativo
+                </a>
+            </div>
+
+            <!-- Login Master -->
+            <div class="login-card">
+                <i class="fas fa-user-shield"></i>
+                <h2>Master</h2>
+                <p>Acesso total ao sistema e gerenciamento de administradores</p>
+                <a href="master/login.html" class="btn btn-primary">
+                    Login Master
+                </a>
+            </div>
+        </div>
+
+        <div class="credentials">
+            <h3>Credenciais Iniciais Master</h3>
+            <p>Email: <code>admin@sistema.com</code></p>
+            <p>Senha: <code>admin123</code></p>
+            <p><small>Recomendamos alterar a senha no primeiro acesso</small></p>
+        </div>
+
+        <footer class="footer">
+            <p>&copy; 2024 Sistema de Empréstimos</p>
+            <p>Todos os direitos reservados</p>
+            <a href="../" class="back-link">
+                <i class="fas fa-arrow-left"></i> Voltar para área do cliente
+            </a>
+        </footer>
+    </div>
+</body>
+</html> 

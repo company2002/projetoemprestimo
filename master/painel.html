@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Master - Sistema de Empréstimos</title>
+    <link rel="stylesheet" href="../frontend/src/styles/main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .dashboard {
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            background: white;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+        }
+
+        .menu {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .menu-item {
+            background: white;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            cursor: pointer;
+            transition: transform 0.3s;
+            text-align: center;
+        }
+
+        .menu-item:hover {
+            transform: translateY(-5px);
+        }
+
+        .menu-item i {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: var(--primary-color);
+        }
+
+        .content {
+            background: white;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+        }
+
+        .admin-card {
+            background: #f8f9fa;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: var(--border-radius);
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .admin-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .info-group {
+            margin-bottom: 10px;
+        }
+
+        .info-label {
+            font-weight: bold;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            color: #333;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background: white;
+            padding: 20px;
+            width: 90%;
+            max-width: 600px;
+            margin: 50px auto;
+            border-radius: var(--border-radius);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+        }
+
+        .logs-container {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .log-entry {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            font-family: monospace;
+        }
+
+        .log-entry:nth-child(odd) {
+            background: #f8f9fa;
+        }
+
+        .backup-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .backup-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .config-section {
+            margin-bottom: 30px;
+        }
+
+        .config-title {
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--primary-color);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .status-badge {
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .status-ativo { background: #28a745; color: #fff; }
+        .status-inativo { background: #dc3545; color: #fff; }
+        .status-bloqueado { background: #ffc107; color: #000; }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <div class="header">
+            <h1><i class="fas fa-user-shield"></i> Painel Master</h1>
+            <div class="user-info">
+                <span id="userName"></span>
+                <button onclick="logout()" class="btn btn-danger btn-small">
+                    <i class="fas fa-sign-out-alt"></i> Sair
+                </button>
+            </div>
+        </div>
+
+        <div class="menu">
+            <div class="menu-item" onclick="showSection('admins')">
+                <i class="fas fa-users-cog"></i>
+                <h3>Administradores</h3>
+                <p>Gerenciar administradores</p>
+            </div>
+            <div class="menu-item" onclick="showSection('configuracoes')">
+                <i class="fas fa-cogs"></i>
+                <h3>Configurações</h3>
+                <p>Configurações do sistema</p>
+            </div>
+            <div class="menu-item" onclick="showSection('logs')">
+                <i class="fas fa-clipboard-list"></i>
+                <h3>Logs</h3>
+                <p>Logs de auditoria</p>
+            </div>
+            <div class="menu-item" onclick="showSection('backup')">
+                <i class="fas fa-database"></i>
+                <h3>Backup</h3>
+                <p>Gerenciar backups</p>
+            </div>
+        </div>
+
+        <div class="content">
+            <!-- Seção de Administradores -->
+            <div id="admins-section">
+                <div class="section-header">
+                    <h2>Gerenciamento de Administradores</h2>
+                    <button class="btn btn-primary" onclick="showNovoAdminModal()">
+                        <i class="fas fa-plus"></i> Novo Administrador
+                    </button>
+                </div>
+
+                <div id="admins-lista">
+                    <!-- Lista de administradores será carregada aqui -->
+                </div>
+            </div>
+
+            <!-- Seção de Configurações -->
+            <div id="configuracoes-section" style="display: none;">
+                <h2>Configurações do Sistema</h2>
+                
+                <div class="config-section">
+                    <h3 class="config-title">Configurações de Empréstimo</h3>
+                    <div class="form-group">
+                        <label>Taxa de Juros Padrão (%)</label>
+                        <input type="number" id="taxaJuros" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label>Limite Máximo de Empréstimo</label>
+                        <input type="number" id="limiteMaximo">
+                    </div>
+                    <div class="form-group">
+                        <label>Score Mínimo para Aprovação</label>
+                        <input type="number" id="scoreMinimo">
+                    </div>
+                </div>
+
+                <div class="config-section">
+                    <h3 class="config-title">Configurações de Sistema</h3>
+                    <div class="form-group">
+                        <label>Email para Notificações</label>
+                        <input type="email" id="emailNotificacoes">
+                    </div>
+                    <div class="form-group">
+                        <label>Tempo de Sessão (minutos)</label>
+                        <input type="number" id="tempoSessao">
+                    </div>
+                </div>
+
+                <button class="btn btn-primary" onclick="salvarConfiguracoes()">
+                    <i class="fas fa-save"></i> Salvar Configurações
+                </button>
+            </div>
+
+            <!-- Seção de Logs -->
+            <div id="logs-section" style="display: none;">
+                <h2>Logs de Auditoria</h2>
+                
+                <div class="filters">
+                    <input type="date" id="dataInicioLogs">
+                    <input type="date" id="dataFimLogs">
+                    <select id="tipoLog">
+                        <option value="">Todos os tipos</option>
+                        <option value="acesso">Acessos</option>
+                        <option value="operacao">Operações</option>
+                        <option value="erro">Erros</option>
+                    </select>
+                    <button class="btn btn-primary" onclick="filtrarLogs()">
+                        <i class="fas fa-filter"></i> Filtrar
+                    </button>
+                </div>
+
+                <div class="logs-container" id="logs-lista">
+                    <!-- Logs serão carregados aqui -->
+                </div>
+            </div>
+
+            <!-- Seção de Backup -->
+            <div id="backup-section" style="display: none;">
+                <h2>Gerenciamento de Backup</h2>
+                
+                <button class="btn btn-primary" onclick="gerarBackup()">
+                    <i class="fas fa-download"></i> Gerar Novo Backup
+                </button>
+
+                <h3>Backups Disponíveis</h3>
+                <ul class="backup-list" id="backups-lista">
+                    <!-- Lista de backups será carregada aqui -->
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Novo Administrador -->
+    <div id="novoAdminModal" class="modal">
+        <div class="modal-content">
+            <h2>Novo Administrador</h2>
+            <form id="novoAdminForm" onsubmit="return criarAdmin(event)">
+                <div class="form-group">
+                    <label>Nome</label>
+                    <input type="text" id="adminNome" required>
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="adminEmail" required>
+                </div>
+                <div class="form-group">
+                    <label>Senha</label>
+                    <input type="password" id="adminSenha" required>
+                </div>
+                <div class="form-group">
+                    <label>Confirmar Senha</label>
+                    <input type="password" id="adminConfirmarSenha" required>
+                </div>
+                <div class="btn-group">
+                    <button type="submit" class="btn btn-primary">Criar</button>
+                    <button type="button" class="btn btn-secondary" onclick="fecharModal('novoAdminModal')">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script type="module">
+        import { API_URL } from '../frontend/src/js/config.js';
+
+        // Verificar autenticação
+        window.onload = function() {
+            const token = localStorage.getItem('masterToken');
+            const userData = JSON.parse(localStorage.getItem('masterData'));
+
+            if (!token || !userData || userData.role !== 'master') {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            document.getElementById('userName').textContent = userData.nome;
+            carregarAdmins();
+        };
+
+        // Funções de navegação
+        window.showSection = function(section) {
+            document.querySelectorAll('.content > div').forEach(div => {
+                div.style.display = 'none';
+            });
+            document.getElementById(`${section}-section`).style.display = 'block';
+
+            switch(section) {
+                case 'admins':
+                    carregarAdmins();
+                    break;
+                case 'logs':
+                    carregarLogs();
+                    break;
+                case 'backup':
+                    carregarBackups();
+                    break;
+                case 'configuracoes':
+                    carregarConfiguracoes();
+                    break;
+            }
+        };
+
+        // Carregar administradores
+        async function carregarAdmins() {
+            try {
+                const response = await fetch(`${API_URL}/api/usuarios/admins`, {
+                    headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('masterToken')
+                    }
+                });
+
+                if (!response.ok) throw new Error('Erro ao carregar administradores');
+
+                const admins = await response.json();
+                const container = document.getElementById('admins-lista');
+                container.innerHTML = '';
+
+                admins.forEach(admin => {
+                    const card = document.createElement('div');
+                    card.className = 'admin-card';
+                    card.innerHTML = `
+                        <div class="admin-header">
+                            <h3>${admin.nome}</h3>
+                            <span class="status-badge status-${admin.status}">${admin.status}</span>
+                        </div>
+                        <div class="admin-info">
+                            <div class="info-group">
+                                <div class="info-label">Email</div>
+                                <div class="info-value">${admin.email}</div>
+                            </div>
+                            <div class="info-group">
+                                <div class="info-label">Último Acesso</div>
+                                <div class="info-value">${admin.ultimo_acesso ? new Date(admin.ultimo_acesso).toLocaleString() : 'Nunca acessou'}</div>
+                            </div>
+                        </div>
+                        <div class="btn-group">
+                            <button onclick="alterarStatusAdmin(${admin.id}, '${admin.status === 'ativo' ? 'inativo' : 'ativo'}')" 
+                                    class="btn ${admin.status === 'ativo' ? 'btn-danger' : 'btn-success'} btn-small">
+                                <i class="fas ${admin.status === 'ativo' ? 'fa-ban' : 'fa-check'}"></i>
+                                ${admin.status === 'ativo' ? 'Desativar' : 'Ativar'}
+                            </button>
+                            <button onclick="resetarSenhaAdmin(${admin.id})" class="btn btn-warning btn-small">
+                                <i class="fas fa-key"></i> Resetar Senha
+                            </button>
+                            <button onclick="excluirAdmin(${admin.id})" class="btn btn-danger btn-small">
+                                <i class="fas fa-trash"></i> Excluir
+                            </button>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro ao carregar administradores');
+            }
+        }
+
+        // Funções de modal
+        window.showNovoAdminModal = function() {
+            document.getElementById('novoAdminModal').style.display = 'block';
+        };
+
+        window.fecharModal = function(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        };
+
+        // Criar novo administrador
+        window.criarAdmin = async function(event) {
+            event.preventDefault();
+
+            const nome = document.getElementById('adminNome').value;
+            const email = document.getElementById('adminEmail').value;
+            const senha = document.getElementById('adminSenha').value;
+            const confirmarSenha = document.getElementById('adminConfirmarSenha').value;
+
+            if (senha !== confirmarSenha) {
+                alert('As senhas não coincidem');
+                return false;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/api/usuarios/admin`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + localStorage.getItem('masterToken')
+                    },
+                    body: JSON.stringify({
+                        nome,
+                        email,
+                        senha,
+                        role: 'admin'
+                    })
+                });
+
+                if (!response.ok) throw new Error('Erro ao criar administrador');
+
+                alert('Administrador criado com sucesso');
+                document.getElementById('novoAdminForm').reset();
+                fecharModal('novoAdminModal');
+                carregarAdmins();
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro ao criar administrador');
+            }
+
+            return false;
+        };
+
+        // Funções de gerenciamento de administradores
+        window.alterarStatusAdmin = async function(id, novoStatus) {
+            try {
+                const response = await fetch(`${API_URL}/api/usuarios/admin/${id}/status`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + localStorage.getItem('masterToken')
+                    },
+                    body: JSON.stringify({ status: novoStatus })
+                });
+
+                if (!response.ok) throw new Error('Erro ao alterar status');
+
+                alert('Status alterado com sucesso');
+                carregarAdmins();
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro ao alterar status');
+            }
+        };
+
+        window.resetarSenhaAdmin = async function(id) {
+            if (!confirm('Tem certeza que deseja resetar a senha deste administrador?')) return;
+
+            try {
+                const response = await fetch(`${API_URL}/api/usuarios/admin/${id}/resetar-senha`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('masterToken')
+                    }
+                });
+
+                if (!response.ok) throw new Error('Erro ao resetar senha');
+
+                const data = await response.json();
+                alert(`Senha resetada com sucesso. Nova senha: ${data.novaSenha}`);
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro ao resetar senha');
+            }
+        };
+
+        window.excluirAdmin = async function(id) {
+            if (!confirm('Tem certeza que deseja excluir este administrador?')) return;
+
+            try {
+                const response = await fetch(`${API_URL}/api/usuarios/admin/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('masterToken')
+                    }
+                });
+
+                if (!response.ok) throw new Error('Erro ao excluir administrador');
+
+                alert('Administrador excluído com sucesso');
+                carregarAdmins();
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro ao excluir administrador');
+            }
+        };
+
+        // Função de logout
+        window.logout = function() {
+            localStorage.removeItem('masterToken');
+            localStorage.removeItem('masterData');
+            window.location.href = 'index.html';
+        };
+
+        // Inicializar primeira seção
+        showSection('admins');
+    </script>
+</body>
+</html> 

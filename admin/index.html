@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Administrativo - Sistema de Empréstimos</title>
+    <link rel="stylesheet" href="../frontend/src/styles/main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .dashboard {
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            background: white;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+        }
+
+        .admin-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .admin-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+        }
+
+        .stat-card h3 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .action-card {
+            background: white;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            text-align: center;
+        }
+
+        .action-card i {
+            font-size: 48px;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+        }
+
+        .action-card h3 {
+            margin-bottom: 10px;
+        }
+
+        .table-container {
+            background: white;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            margin-bottom: 30px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .badge {
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .badge-success { background: #28a745; color: white; }
+        .badge-warning { background: #ffc107; color: black; }
+        .badge-danger { background: #dc3545; color: white; }
+
+        .filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .filter-input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+        }
+
+        .logout-btn {
+            background: var(--danger-color);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <header class="header">
+            <div class="admin-info">
+                <div class="admin-avatar">
+                    <i class="fas fa-user-tie"></i>
+                </div>
+                <div>
+                    <h2 id="adminName">Carregando...</h2>
+                    <p id="adminRole">Administrador</p>
+                </div>
+            </div>
+            <button class="logout-btn" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i> Sair
+            </button>
+        </header>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3><i class="fas fa-file-invoice"></i> Solicitações Pendentes</h3>
+                <p class="stat-value" id="solicitacoesPendentes">Carregando...</p>
+            </div>
+            <div class="stat-card">
+                <h3><i class="fas fa-users"></i> Total de Clientes</h3>
+                <p class="stat-value" id="totalClientes">Carregando...</p>
+            </div>
+            <div class="stat-card">
+                <h3><i class="fas fa-chart-pie"></i> Taxa de Aprovação</h3>
+                <p class="stat-value" id="taxaAprovacao">Carregando...</p>
+            </div>
+        </div>
+
+        <div class="actions-grid">
+            <div class="action-card">
+                <i class="fas fa-search"></i>
+                <h3>Buscar Cliente</h3>
+                <p>Pesquise e gerencie dados dos clientes</p>
+                <button class="btn btn-primary" onclick="buscarCliente()">Buscar</button>
+            </div>
+            <div class="action-card">
+                <i class="fas fa-chart-bar"></i>
+                <h3>Relatórios</h3>
+                <p>Gere e visualize relatórios do sistema</p>
+                <button class="btn btn-primary" onclick="verRelatorios()">Ver Relatórios</button>
+            </div>
+            <div class="action-card">
+                <i class="fas fa-cog"></i>
+                <h3>Configurações</h3>
+                <p>Configure parâmetros do sistema</p>
+                <button class="btn btn-primary" onclick="abrirConfiguracoes()">Configurar</button>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <h2>Solicitações Recentes</h2>
+            <div class="filters">
+                <input type="text" class="filter-input" id="clienteFilter" placeholder="Filtrar por cliente...">
+                <select class="filter-input" id="statusFilter">
+                    <option value="">Todos os status</option>
+                    <option value="pendente">Pendente</option>
+                    <option value="aprovado">Aprovado</option>
+                    <option value="recusado">Recusado</option>
+                </select>
+                <button class="btn btn-primary" onclick="aplicarFiltros()">Filtrar</button>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Cliente</th>
+                        <th>Valor</th>
+                        <th>Score</th>
+                        <th>Status</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="solicitacoesTable">
+                    <tr>
+                        <td colspan="6">Carregando...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script type="module">
+        import { API_URL } from '../frontend/src/js/config.js';
+
+        // Verificar autenticação
+        window.onload = async function() {
+            const token = localStorage.getItem('adminToken');
+            if (!token) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            try {
+                await carregarDadosAdmin();
+                await carregarEstatisticas();
+                await carregarSolicitacoes();
+            } catch (error) {
+                console.error('Erro:', error);
+                if (error.status === 401) {
+                    logout();
+                }
+            }
+        };
+
+        // Função para carregar dados do administrador
+        async function carregarDadosAdmin() {
+            const token = localStorage.getItem('adminToken');
+            const response = await fetch(`${API_URL}/api/admin/perfil`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) throw response;
+
+            const data = await response.json();
+            document.getElementById('adminName').textContent = data.nome;
+        }
+
+        // Função para carregar estatísticas
+        async function carregarEstatisticas() {
+            const token = localStorage.getItem('adminToken');
+            const response = await fetch(`${API_URL}/api/admin/estatisticas`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) throw response;
+
+            const data = await response.json();
+            document.getElementById('solicitacoesPendentes').textContent = data.pendentes;
+            document.getElementById('totalClientes').textContent = data.total_clientes;
+            document.getElementById('taxaAprovacao').textContent = `${data.taxa_aprovacao}%`;
+        }
+
+        // Função para carregar solicitações
+        async function carregarSolicitacoes() {
+            const token = localStorage.getItem('adminToken');
+            const clienteFilter = document.getElementById('clienteFilter').value;
+            const statusFilter = document.getElementById('statusFilter').value;
+
+            const response = await fetch(`${API_URL}/api/admin/solicitacoes?cliente=${clienteFilter}&status=${statusFilter}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) throw response;
+
+            const solicitacoes = await response.json();
+            const tbody = document.getElementById('solicitacoesTable');
+            tbody.innerHTML = '';
+
+            solicitacoes.forEach(solicitacao => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${new Date(solicitacao.data_hora).toLocaleDateString('pt-BR')}</td>
+                    <td>${solicitacao.cliente_nome}</td>
+                    <td>R$ ${solicitacao.valor.toLocaleString('pt-BR')}</td>
+                    <td>${solicitacao.score}</td>
+                    <td>
+                        <span class="badge badge-${getBadgeClass(solicitacao.status)}">
+                            ${solicitacao.status}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="btn btn-small" onclick="verDetalhes(${solicitacao.id})">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn btn-small btn-success" onclick="aprovar(${solicitacao.id})">
+                            <i class="fas fa-check"></i>
+                        </button>
+                        <button class="btn btn-small btn-danger" onclick="recusar(${solicitacao.id})">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Função para determinar classe do badge
+        function getBadgeClass(status) {
+            switch (status) {
+                case 'aprovado': return 'success';
+                case 'pendente': return 'warning';
+                case 'recusado': return 'danger';
+                default: return 'warning';
+            }
+        }
+
+        // Função de logout
+        window.logout = function() {
+            localStorage.removeItem('adminToken');
+            localStorage.removeItem('adminData');
+            window.location.href = 'login.html';
+        };
+
+        // Funções de ação
+        window.buscarCliente = function() {
+            window.location.href = 'clientes.html';
+        };
+
+        window.verRelatorios = function() {
+            window.location.href = 'relatorios.html';
+        };
+
+        window.abrirConfiguracoes = function() {
+            window.location.href = 'configuracoes.html';
+        };
+
+        window.verDetalhes = function(id) {
+            window.location.href = `detalhes.html?id=${id}`;
+        };
+
+        window.aprovar = async function(id) {
+            const token = localStorage.getItem('adminToken');
+            const response = await fetch(`${API_URL}/api/admin/solicitacoes/${id}/aprovar`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (response.ok) {
+                await carregarSolicitacoes();
+                await carregarEstatisticas();
+            }
+        };
+
+        window.recusar = async function(id) {
+            const token = localStorage.getItem('adminToken');
+            const response = await fetch(`${API_URL}/api/admin/solicitacoes/${id}/recusar`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (response.ok) {
+                await carregarSolicitacoes();
+                await carregarEstatisticas();
+            }
+        };
+
+        window.aplicarFiltros = function() {
+            carregarSolicitacoes();
+        };
+    </script>
+</body>
+</html> 

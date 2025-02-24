@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro Administrativo - Sistema de Empréstimos</title>
+    <link rel="stylesheet" href="../src/styles/main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .auth-container {
+            max-width: 500px;
+            margin: 50px auto;
+            padding: 30px;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .auth-header h1 {
+            color: var(--primary-color);
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: var(--border-radius);
+            font-size: 16px;
+        }
+
+        .error-message {
+            color: var(--danger-color);
+            text-align: center;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .success-message {
+            color: var(--success-color);
+            text-align: center;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn-group .btn {
+            flex: 1;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-header">
+            <h1><i class="fas fa-user-plus"></i> Cadastro Administrativo</h1>
+            <p>Preencha os dados para solicitar acesso</p>
+        </div>
+
+        <form id="cadastroForm" onsubmit="return fazerCadastro(event)">
+            <div class="form-group">
+                <label for="nome">Nome Completo</label>
+                <input type="text" id="nome" required>
+                <div class="error-message" id="nomeError"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" required>
+                <div class="error-message" id="emailError"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="role">Tipo de Usuário</label>
+                <select id="role" required>
+                    <option value="operador">Operador</option>
+                    <option value="admin">Administrador</option>
+                </select>
+                <div class="error-message" id="roleError"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="senha">Senha</label>
+                <input type="password" id="senha" required>
+                <div class="error-message" id="senhaError"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="confirmarSenha">Confirmar Senha</label>
+                <input type="password" id="confirmarSenha" required>
+                <div class="error-message" id="confirmarSenhaError"></div>
+            </div>
+
+            <div class="btn-group">
+                <button type="button" onclick="window.location.href='index.html'" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Voltar
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-user-plus"></i> Solicitar Cadastro
+                </button>
+            </div>
+
+            <div id="successMessage" class="success-message"></div>
+            <div id="errorMessage" class="error-message"></div>
+        </form>
+    </div>
+
+    <script>
+        async function fazerCadastro(event) {
+            event.preventDefault();
+
+            // Limpar mensagens
+            document.querySelectorAll('.error-message').forEach(el => el.style.display = 'none');
+            document.getElementById('successMessage').style.display = 'none';
+
+            // Validar senha
+            const senha = document.getElementById('senha').value;
+            const confirmarSenha = document.getElementById('confirmarSenha').value;
+
+            if (senha !== confirmarSenha) {
+                document.getElementById('confirmarSenhaError').textContent = 'As senhas não coincidem';
+                document.getElementById('confirmarSenhaError').style.display = 'block';
+                return false;
+            }
+
+            try {
+                const response = await fetch('http://localhost:3000/api/auth/registro', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        nome: document.getElementById('nome').value,
+                        email: document.getElementById('email').value,
+                        role: document.getElementById('role').value,
+                        senha: senha
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    document.getElementById('successMessage').textContent = 'Cadastro realizado com sucesso! Aguarde a aprovação do administrador.';
+                    document.getElementById('successMessage').style.display = 'block';
+                    document.getElementById('cadastroForm').reset();
+                    
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 3000);
+                } else {
+                    if (data.error === 'EMAIL_EXISTE') {
+                        document.getElementById('emailError').textContent = 'Email já cadastrado';
+                        document.getElementById('emailError').style.display = 'block';
+                    } else {
+                        document.getElementById('errorMessage').textContent = data.error || 'Erro ao realizar cadastro';
+                        document.getElementById('errorMessage').style.display = 'block';
+                    }
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                document.getElementById('errorMessage').textContent = 'Erro ao conectar com o servidor';
+                document.getElementById('errorMessage').style.display = 'block';
+            }
+
+            return false;
+        }
+    </script>
+</body>
+</html> 

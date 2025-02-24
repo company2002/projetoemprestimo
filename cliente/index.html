@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel do Cliente - Sistema de Empréstimos</title>
+    <link rel="stylesheet" href="../frontend/src/styles/main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .dashboard {
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            background: white;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+        }
+
+        .stat-card h3 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .action-card {
+            background: white;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            text-align: center;
+        }
+
+        .action-card i {
+            font-size: 48px;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+        }
+
+        .action-card h3 {
+            margin-bottom: 10px;
+        }
+
+        .table-container {
+            background: white;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            margin-bottom: 30px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .badge {
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .badge-success { background: #28a745; color: white; }
+        .badge-warning { background: #ffc107; color: black; }
+        .badge-danger { background: #dc3545; color: white; }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #ddd;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--primary-color);
+            transition: width 0.3s ease;
+        }
+
+        .logout-btn {
+            background: var(--danger-color);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <header class="header">
+            <div class="user-info">
+                <div class="user-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div>
+                    <h2 id="userName">Carregando...</h2>
+                    <p id="userScore">Score: Carregando...</p>
+                </div>
+            </div>
+            <button class="logout-btn" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i> Sair
+            </button>
+        </header>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3><i class="fas fa-wallet"></i> Margem Disponível</h3>
+                <p class="stat-value" id="margemDisponivel">Carregando...</p>
+            </div>
+            <div class="stat-card">
+                <h3><i class="fas fa-chart-line"></i> Score de Crédito</h3>
+                <p class="stat-value" id="scoreCredito">Carregando...</p>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="scoreProgress" style="width: 0%"></div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <h3><i class="fas fa-medal"></i> Nível</h3>
+                <p class="stat-value" id="nivelCliente">Carregando...</p>
+            </div>
+        </div>
+
+        <div class="actions-grid">
+            <div class="action-card">
+                <i class="fas fa-hand-holding-usd"></i>
+                <h3>Solicitar Empréstimo</h3>
+                <p>Simule e solicite seu empréstimo de forma rápida e segura</p>
+                <button class="btn btn-primary" onclick="solicitarEmprestimo()">Solicitar</button>
+            </div>
+            <div class="action-card">
+                <i class="fas fa-file-invoice-dollar"></i>
+                <h3>Meus Pagamentos</h3>
+                <p>Visualize e gerencie seus pagamentos</p>
+                <button class="btn btn-primary" onclick="verPagamentos()">Ver Pagamentos</button>
+            </div>
+            <div class="action-card">
+                <i class="fas fa-user-cog"></i>
+                <h3>Meu Perfil</h3>
+                <p>Atualize seus dados cadastrais</p>
+                <button class="btn btn-primary" onclick="editarPerfil()">Editar Perfil</button>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <h2>Minhas Solicitações</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Valor</th>
+                        <th>Tipo</th>
+                        <th>Status</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="solicitacoesTable">
+                    <tr>
+                        <td colspan="5">Carregando...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script type="module">
+        import { API_URL } from '../frontend/src/js/config.js';
+
+        // Verificar autenticação
+        window.onload = async function() {
+            const token = localStorage.getItem('clienteToken');
+            if (!token) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            try {
+                await carregarDadosCliente();
+                await carregarSolicitacoes();
+            } catch (error) {
+                console.error('Erro:', error);
+                if (error.status === 401) {
+                    logout();
+                }
+            }
+        };
+
+        // Função para carregar dados do cliente
+        async function carregarDadosCliente() {
+            const token = localStorage.getItem('clienteToken');
+            const response = await fetch(`${API_URL}/api/clientes/perfil`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) throw response;
+
+            const data = await response.json();
+            document.getElementById('userName').textContent = data.nome;
+            document.getElementById('userScore').textContent = `Score: ${data.score}`;
+            document.getElementById('margemDisponivel').textContent = 
+                `R$ ${data.margem_avulso.toLocaleString('pt-BR')}`;
+            document.getElementById('scoreCredito').textContent = data.score;
+            document.getElementById('nivelCliente').textContent = data.nivel;
+
+            // Atualizar barra de progresso do score
+            const scoreProgress = (data.score / 1000) * 100;
+            document.getElementById('scoreProgress').style.width = `${scoreProgress}%`;
+        }
+
+        // Função para carregar solicitações
+        async function carregarSolicitacoes() {
+            const token = localStorage.getItem('clienteToken');
+            const response = await fetch(`${API_URL}/api/clientes/solicitacoes`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) throw response;
+
+            const solicitacoes = await response.json();
+            const tbody = document.getElementById('solicitacoesTable');
+            tbody.innerHTML = '';
+
+            solicitacoes.forEach(solicitacao => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${new Date(solicitacao.data_hora).toLocaleDateString('pt-BR')}</td>
+                    <td>R$ ${solicitacao.valor.toLocaleString('pt-BR')}</td>
+                    <td>${solicitacao.tipo}</td>
+                    <td>
+                        <span class="badge badge-${getBadgeClass(solicitacao.status)}">
+                            ${solicitacao.status}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="btn btn-small" onclick="verDetalhes(${solicitacao.id})">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Função para determinar classe do badge
+        function getBadgeClass(status) {
+            switch (status) {
+                case 'aprovado': return 'success';
+                case 'pendente': return 'warning';
+                case 'recusado': return 'danger';
+                default: return 'warning';
+            }
+        }
+
+        // Função de logout
+        window.logout = function() {
+            localStorage.removeItem('clienteToken');
+            localStorage.removeItem('clienteData');
+            window.location.href = 'login.html';
+        };
+
+        // Funções de ação
+        window.solicitarEmprestimo = function() {
+            window.location.href = 'solicitar.html';
+        };
+
+        window.verPagamentos = function() {
+            window.location.href = 'pagamentos.html';
+        };
+
+        window.editarPerfil = function() {
+            window.location.href = 'perfil.html';
+        };
+
+        window.verDetalhes = function(id) {
+            window.location.href = `detalhes.html?id=${id}`;
+        };
+    </script>
+</body>
+</html> 
