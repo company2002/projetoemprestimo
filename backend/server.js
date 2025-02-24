@@ -4,6 +4,7 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const solicitacoesRoutes = require('./src/routes/solicitacoes');
 const authRoutes = require('./src/routes/auth');
+const clientesRoutes = require('./src/routes/clientes');
 const path = require('path');
 
 // Iniciar agendador de tarefas
@@ -13,7 +14,13 @@ const app = express();
 
 // Configuração CORS
 const corsOptions = {
-    origin: process.env.CORS_ORIGIN || 'https://company2002.github.io',
+    origin: [
+        'https://company2002.github.io',
+        'http://localhost:3000',
+        'http://localhost:5000',
+        'http://localhost:3001',
+        'http://127.0.0.1:5500'
+    ],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
@@ -34,6 +41,7 @@ if (!require('fs').existsSync(logDir)) {
 
 // Rotas
 app.use('/api/auth', authRoutes);
+app.use('/api/clientes', clientesRoutes);
 app.use('/api/solicitacoes', solicitacoesRoutes);
 
 // Rota de teste/status
@@ -43,12 +51,16 @@ app.get('/status', (req, res) => {
 
 // Tratamento de erros
 app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).json({ erro: 'Algo deu errado!' });
+    console.error('Erro na aplicação:', err);
+    res.status(500).json({ 
+        erro: 'Algo deu errado!',
+        mensagem: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
 });
 
 // Iniciar servidor
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
     console.log(`Servidor rodando na porta ${PORT}`);
+    console.log(`Ambiente: ${process.env.NODE_ENV}`);
 }); 
