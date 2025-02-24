@@ -84,19 +84,13 @@
             text-decoration: underline;
         }
 
-        .credentials-info {
+        .security-info {
             text-align: center;
             margin-top: 20px;
             padding: 15px;
-            background: var(--bg-secondary);
+            background: var(--bg-warning);
             border-radius: var(--border-radius);
-        }
-
-        .credentials-info code {
-            background: var(--bg-tertiary);
-            padding: 2px 5px;
-            border-radius: 3px;
-            font-family: monospace;
+            color: var(--text-dark);
         }
     </style>
 </head>
@@ -125,10 +119,9 @@
             <div id="errorMessage" class="error-message"></div>
         </form>
 
-        <div class="credentials-info">
-            <p><strong>Credenciais Iniciais:</strong></p>
-            <p>Email: <code>admin@sistema.com</code></p>
-            <p>Senha: <code>admin123</code></p>
+        <div class="security-info">
+            <i class="fas fa-shield-alt"></i>
+            <p>Área de acesso restrito. Tentativas não autorizadas serão registradas.</p>
         </div>
 
         <div class="auth-links">
