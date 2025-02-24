@@ -4,10 +4,14 @@ services:
     env: node
     region: oregon
     plan: free
-    buildCommand: npm install
-    startCommand: npm start
+    buildCommand: npm install && npm run build
+    startCommand: npm run prod
     healthCheckPath: /status
+    healthCheckTimeout: 5
     autoDeploy: true
+    numInstances: 1
+    domains:
+      - sistema-emprestimo.onrender.com
     envVars:
       - key: NODE_ENV
         value: production
@@ -23,11 +27,56 @@ services:
         generateValue: true
       - key: PORT
         value: 10000
+      - key: LOG_LEVEL
+        value: info
+      - key: COMPRESSION_ENABLED
+        value: true
+      - key: STATIC_CACHE_AGE
+        value: 86400000
+      - key: RATE_LIMIT_WINDOW
+        value: 900
+      - key: RATE_LIMIT_MAX
+        value: 100
+    disk:
+      name: data
+      mountPath: /data
+      sizeGB: 1
     headers:
       - path: /*
-        name: Access-Control-Allow-Origin
-        value: "*"
+        name: X-Frame-Options
+        value: DENY
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: X-XSS-Protection
+        value: "1; mode=block"
+      - path: /*
+        name: Referrer-Policy
+        value: strict-origin-when-cross-origin
+      - path: /*
+        name: Content-Security-Policy
+        value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: https:; font-src 'self' data: https:;"
     routes:
       - type: rewrite
         source: /*
-        destination: / 
+        destination: /
+    scaling:
+      minInstances: 1
+      maxInstances: 1
+      targetMemoryPercent: 80
+      targetCPUPercent: 80
+    metrics:
+      - type: cpu
+      - type: memory
+      - type: requests
+    alerts:
+      - type: cpu
+        threshold: 80
+        duration: 5m
+      - type: memory
+        threshold: 80
+        duration: 5m
+      - type: http5xx
+        threshold: 5
+        duration: 5m 

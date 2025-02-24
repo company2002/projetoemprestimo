@@ -1,0 +1,44 @@
+{
+  "env": {
+    "node": true,
+    "es2021": true,
+    "jest": true
+  },
+  "extends": [
+    "eslint:recommended",
+    "prettier"
+  ],
+  "parserOptions": {
+    "ecmaVersion": 2021,
+    "sourceType": "module"
+  },
+  "rules": {
+    "no-console": ["warn", { "allow": ["warn", "error"] }],
+    "no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
+    "no-var": "error",
+    "prefer-const": "error",
+    "eqeqeq": ["error", "always"],
+    "curly": ["error", "all"],
+    "no-multiple-empty-lines": ["error", { "max": 1 }],
+    "no-trailing-spaces": "error",
+    "semi": ["error", "always"],
+    "quotes": ["error", "single"],
+    "indent": ["error", 2],
+    "comma-dangle": ["error", "always-multiline"],
+    "arrow-parens": ["error", "always"],
+    "no-eval": "error",
+    "no-implied-eval": "error",
+    "no-new-func": "error",
+    "no-param-reassign": "error",
+    "no-return-await": "error",
+    "no-self-compare": "error",
+    "no-throw-literal": "error",
+    "prefer-promise-reject-errors": "error",
+    "require-await": "error",
+    "max-len": ["error", { "code": 100 }],
+    "complexity": ["error", 10],
+    "max-depth": ["error", 3],
+    "max-lines-per-function": ["error", { "max": 50 }],
+    "max-params": ["error", 4]
+  }
+} 

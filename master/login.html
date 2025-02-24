@@ -1,1 +1,145 @@
- 
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Painel Master</title>
+    <link rel="stylesheet" href="../frontend/src/styles/main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .auth-container {
+            max-width: 400px;
+            margin: 100px auto;
+            padding: 30px;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .auth-header h1 {
+            color: var(--primary-color);
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: var(--border-radius);
+            font-size: 16px;
+        }
+
+        .error-message {
+            color: var(--danger-color);
+            text-align: center;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .security-warning {
+            margin-top: 20px;
+            padding: 15px;
+            background: var(--warning-color);
+            border-radius: var(--border-radius);
+            color: var(--text-dark);
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-header">
+            <h1><i class="fas fa-user-shield"></i> Painel Master</h1>
+            <p>Acesso restrito ao administrador master</p>
+        </div>
+
+        <form id="loginForm" onsubmit="return fazerLogin(event)">
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" required>
+            </div>
+
+            <div class="form-group">
+                <label for="senha">Senha</label>
+                <input type="password" id="senha" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-sign-in-alt"></i> Entrar
+            </button>
+
+            <div id="errorMessage" class="error-message"></div>
+        </form>
+
+        <div class="security-warning">
+            <i class="fas fa-exclamation-triangle"></i>
+            <strong>Aviso de Segurança:</strong>
+            <p>Este é um ambiente restrito. Todas as ações são registradas.</p>
+        </div>
+    </div>
+
+    <script type="module">
+        import { API_URL } from '../frontend/src/js/config.js';
+
+        window.fazerLogin = async function(event) {
+            event.preventDefault();
+
+            const email = document.getElementById('email').value;
+            const senha = document.getElementById('senha').value;
+            const errorMessage = document.getElementById('errorMessage');
+
+            try {
+                const response = await fetch(`${API_URL}/api/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        email,
+                        senha,
+                        tipo: 'master'
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Verificar se o usuário é master
+                    if (data.usuario.role !== 'master') {
+                        errorMessage.textContent = 'Acesso não autorizado. Apenas o administrador master pode acessar esta área.';
+                        errorMessage.style.display = 'block';
+                        return;
+                    }
+
+                    localStorage.setItem('masterToken', data.token);
+                    localStorage.setItem('masterData', JSON.stringify(data.usuario));
+                    window.location.href = 'index.html';
+                } else {
+                    errorMessage.textContent = data.error || 'Erro ao fazer login';
+                    errorMessage.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                errorMessage.textContent = 'Erro ao conectar com o servidor';
+                errorMessage.style.display = 'block';
+            }
+        };
+    </script>
+</body>
+</html> 

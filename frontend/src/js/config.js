@@ -1,5 +1,39 @@
-// Configurações globais do sistema
-export const API_URL = 'https://sistema-emprestimo.onrender.com';
+// URLs do sistema
+export const URLS = {
+    BASE_URL: 'https://company2002.github.io/projetoemprestimo',
+    API_URL: process.env.API_URL || 'https://sistema-emprestimo.onrender.com',
+    CDN_URL: process.env.CDN_URL || 'https://cdn.sistema-emprestimo.com',
+    ASSETS_URL: 'https://company2002.github.io/projetoemprestimo/assets'
+};
+
+// Rotas do cliente
+export const CLIENT_ROUTES = {
+    HOME: '/',
+    LOGIN: '/login.html',
+    REGISTER: '/cadastro.html',
+    DASHBOARD: '/dashboard.html',
+    PROFILE: '/perfil.html',
+    LOANS: '/emprestimos.html',
+    SIMULATOR: '/simulador.html'
+};
+
+// Rotas do admin
+export const ADMIN_ROUTES = {
+    LOGIN: '/admin/login.html',
+    DASHBOARD: '/admin/index.html',
+    USERS: '/admin/usuarios.html',
+    LOANS: '/admin/emprestimos.html',
+    REPORTS: '/admin/relatorios.html'
+};
+
+// Rotas do master
+export const MASTER_ROUTES = {
+    LOGIN: '/master/login.html',
+    DASHBOARD: '/master/index.html',
+    ADMINS: '/master/administradores.html',
+    SETTINGS: '/master/configuracoes.html',
+    LOGS: '/master/logs.html'
+};
 
 // Configurações de tema
 export const THEME = {

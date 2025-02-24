@@ -1,0 +1,25 @@
+{
+  "verbose": true,
+  "watch": ["backend"],
+  "ignore": [
+    "**/*.test.js",
+    "**/*.spec.js",
+    ".git",
+    "node_modules",
+    "coverage",
+    "logs",
+    "backups"
+  ],
+  "env": {
+    "NODE_ENV": "development"
+  },
+  "ext": "js,json,sql",
+  "delay": "2500",
+  "execMap": {
+    "js": "node"
+  },
+  "events": {
+    "restart": "clear || cls"
+  },
+  "restartable": "rs"
+} 
