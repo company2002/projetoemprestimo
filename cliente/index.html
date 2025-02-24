@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel Administrativo - Sistema de Empréstimos</title>
+    <title>Painel do Cliente - Sistema de Empréstimos</title>
     <link rel="stylesheet" href="../frontend/src/styles/main.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -24,13 +24,13 @@
             box-shadow: var(--box-shadow);
         }
 
-        .admin-info {
+        .user-info {
             display: flex;
             align-items: center;
             gap: 15px;
         }
 
-        .admin-avatar {
+        .user-avatar {
             width: 50px;
             height: 50px;
             border-radius: 50%;
@@ -126,16 +126,18 @@
         .badge-warning { background: #ffc107; color: black; }
         .badge-danger { background: #dc3545; color: white; }
 
-        .filters {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #ddd;
+            border-radius: 4px;
+            overflow: hidden;
         }
 
-        .filter-input {
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: var(--border-radius);
+        .progress-fill {
+            height: 100%;
+            background: var(--primary-color);
+            transition: width 0.3s ease;
         }
 
         .logout-btn {
@@ -151,13 +153,13 @@
 <body>
     <div class="dashboard">
         <header class="header">
-            <div class="admin-info">
-                <div class="admin-avatar">
-                    <i class="fas fa-user-tie"></i>
+            <div class="user-info">
+                <div class="user-avatar">
+                    <i class="fas fa-user"></i>
                 </div>
                 <div>
-                    <h2 id="adminName">Carregando...</h2>
-                    <p id="adminRole">Administrador</p>
+                    <h2 id="userName">Carregando...</h2>
+                    <p id="userScore">Score: Carregando...</p>
                 </div>
             </div>
             <button class="logout-btn" onclick="logout()">
@@ -167,66 +169,58 @@
 
         <div class="stats-grid">
             <div class="stat-card">
-                <h3><i class="fas fa-file-invoice"></i> Solicitações Pendentes</h3>
-                <p class="stat-value" id="solicitacoesPendentes">Carregando...</p>
+                <h3><i class="fas fa-wallet"></i> Margem Disponível</h3>
+                <p class="stat-value" id="margemDisponivel">Carregando...</p>
             </div>
             <div class="stat-card">
-                <h3><i class="fas fa-users"></i> Total de Clientes</h3>
-                <p class="stat-value" id="totalClientes">Carregando...</p>
+                <h3><i class="fas fa-chart-line"></i> Score de Crédito</h3>
+                <p class="stat-value" id="scoreCredito">Carregando...</p>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="scoreProgress" style="width: 0%"></div>
+                </div>
             </div>
             <div class="stat-card">
-                <h3><i class="fas fa-chart-pie"></i> Taxa de Aprovação</h3>
-                <p class="stat-value" id="taxaAprovacao">Carregando...</p>
+                <h3><i class="fas fa-medal"></i> Nível</h3>
+                <p class="stat-value" id="nivelCliente">Carregando...</p>
             </div>
         </div>
 
         <div class="actions-grid">
             <div class="action-card">
-                <i class="fas fa-search"></i>
-                <h3>Buscar Cliente</h3>
-                <p>Pesquise e gerencie dados dos clientes</p>
-                <button class="btn btn-primary" onclick="buscarCliente()">Buscar</button>
+                <i class="fas fa-hand-holding-usd"></i>
+                <h3>Solicitar Empréstimo</h3>
+                <p>Simule e solicite seu empréstimo de forma rápida e segura</p>
+                <button class="btn btn-primary" onclick="solicitarEmprestimo()">Solicitar</button>
             </div>
             <div class="action-card">
-                <i class="fas fa-chart-bar"></i>
-                <h3>Relatórios</h3>
-                <p>Gere e visualize relatórios do sistema</p>
-                <button class="btn btn-primary" onclick="verRelatorios()">Ver Relatórios</button>
+                <i class="fas fa-file-invoice-dollar"></i>
+                <h3>Meus Pagamentos</h3>
+                <p>Visualize e gerencie seus pagamentos</p>
+                <button class="btn btn-primary" onclick="verPagamentos()">Ver Pagamentos</button>
             </div>
             <div class="action-card">
-                <i class="fas fa-cog"></i>
-                <h3>Configurações</h3>
-                <p>Configure parâmetros do sistema</p>
-                <button class="btn btn-primary" onclick="abrirConfiguracoes()">Configurar</button>
+                <i class="fas fa-user-cog"></i>
+                <h3>Meu Perfil</h3>
+                <p>Atualize seus dados cadastrais</p>
+                <button class="btn btn-primary" onclick="editarPerfil()">Editar Perfil</button>
             </div>
         </div>
 
         <div class="table-container">
-            <h2>Solicitações Recentes</h2>
-            <div class="filters">
-                <input type="text" class="filter-input" id="clienteFilter" placeholder="Filtrar por cliente...">
-                <select class="filter-input" id="statusFilter">
-                    <option value="">Todos os status</option>
-                    <option value="pendente">Pendente</option>
-                    <option value="aprovado">Aprovado</option>
-                    <option value="recusado">Recusado</option>
-                </select>
-                <button class="btn btn-primary" onclick="aplicarFiltros()">Filtrar</button>
-            </div>
+            <h2>Minhas Solicitações</h2>
             <table>
                 <thead>
                     <tr>
                         <th>Data</th>
-                        <th>Cliente</th>
                         <th>Valor</th>
-                        <th>Score</th>
+                        <th>Tipo</th>
                         <th>Status</th>
                         <th>Ações</th>
                     </tr>
                 </thead>
                 <tbody id="solicitacoesTable">
                     <tr>
-                        <td colspan="6">Carregando...</td>
+                        <td colspan="5">Carregando...</td>
                     </tr>
                 </tbody>
             </table>
@@ -238,15 +232,14 @@
 
         // Verificar autenticação
         window.onload = async function() {
-            const token = localStorage.getItem('adminToken');
+            const token = localStorage.getItem('clienteToken');
             if (!token) {
                 window.location.href = 'login.html';
                 return;
             }
 
             try {
-                await carregarDadosAdmin();
-                await carregarEstatisticas();
+                await carregarDadosCliente();
                 await carregarSolicitacoes();
             } catch (error) {
                 console.error('Erro:', error);
@@ -256,10 +249,10 @@
             }
         };
 
-        // Função para carregar dados do administrador
-        async function carregarDadosAdmin() {
-            const token = localStorage.getItem('adminToken');
-            const response = await fetch(`${API_URL}/api/admin/perfil`, {
+        // Função para carregar dados do cliente
+        async function carregarDadosCliente() {
+            const token = localStorage.getItem('clienteToken');
+            const response = await fetch(`${API_URL}/api/clientes/perfil`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -268,33 +261,22 @@
             if (!response.ok) throw response;
 
             const data = await response.json();
-            document.getElementById('adminName').textContent = data.nome;
-        }
+            document.getElementById('userName').textContent = data.nome;
+            document.getElementById('userScore').textContent = `Score: ${data.score}`;
+            document.getElementById('margemDisponivel').textContent = 
+                `R$ ${data.margem_avulso.toLocaleString('pt-BR')}`;
+            document.getElementById('scoreCredito').textContent = data.score;
+            document.getElementById('nivelCliente').textContent = data.nivel;
 
-        // Função para carregar estatísticas
-        async function carregarEstatisticas() {
-            const token = localStorage.getItem('adminToken');
-            const response = await fetch(`${API_URL}/api/admin/estatisticas`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-
-            if (!response.ok) throw response;
-
-            const data = await response.json();
-            document.getElementById('solicitacoesPendentes').textContent = data.pendentes;
-            document.getElementById('totalClientes').textContent = data.total_clientes;
-            document.getElementById('taxaAprovacao').textContent = `${data.taxa_aprovacao}%`;
+            // Atualizar barra de progresso do score
+            const scoreProgress = (data.score / 1000) * 100;
+            document.getElementById('scoreProgress').style.width = `${scoreProgress}%`;
         }
 
         // Função para carregar solicitações
         async function carregarSolicitacoes() {
-            const token = localStorage.getItem('adminToken');
-            const clienteFilter = document.getElementById('clienteFilter').value;
-            const statusFilter = document.getElementById('statusFilter').value;
-
-            const response = await fetch(`${API_URL}/api/admin/solicitacoes?cliente=${clienteFilter}&status=${statusFilter}`, {
+            const token = localStorage.getItem('clienteToken');
+            const response = await fetch(`${API_URL}/api/clientes/solicitacoes`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -310,9 +292,8 @@
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>${new Date(solicitacao.data_hora).toLocaleDateString('pt-BR')}</td>
-                    <td>${solicitacao.cliente_nome}</td>
                     <td>R$ ${solicitacao.valor.toLocaleString('pt-BR')}</td>
-                    <td>${solicitacao.score}</td>
+                    <td>${solicitacao.tipo}</td>
                     <td>
                         <span class="badge badge-${getBadgeClass(solicitacao.status)}">
                             ${solicitacao.status}
@@ -321,12 +302,6 @@
                     <td>
                         <button class="btn btn-small" onclick="verDetalhes(${solicitacao.id})">
                             <i class="fas fa-eye"></i>
-                        </button>
-                        <button class="btn btn-small btn-success" onclick="aprovar(${solicitacao.id})">
-                            <i class="fas fa-check"></i>
-                        </button>
-                        <button class="btn btn-small btn-danger" onclick="recusar(${solicitacao.id})">
-                            <i class="fas fa-times"></i>
                         </button>
                     </td>
                 `;
@@ -346,60 +321,26 @@
 
         // Função de logout
         window.logout = function() {
-            localStorage.removeItem('adminToken');
-            localStorage.removeItem('adminData');
+            localStorage.removeItem('clienteToken');
+            localStorage.removeItem('clienteData');
             window.location.href = 'login.html';
         };
 
         // Funções de ação
-        window.buscarCliente = function() {
-            window.location.href = 'clientes.html';
+        window.solicitarEmprestimo = function() {
+            window.location.href = 'solicitar.html';
         };
 
-        window.verRelatorios = function() {
-            window.location.href = 'relatorios.html';
+        window.verPagamentos = function() {
+            window.location.href = 'pagamentos.html';
         };
 
-        window.abrirConfiguracoes = function() {
-            window.location.href = 'configuracoes.html';
+        window.editarPerfil = function() {
+            window.location.href = 'perfil.html';
         };
 
         window.verDetalhes = function(id) {
             window.location.href = `detalhes.html?id=${id}`;
-        };
-
-        window.aprovar = async function(id) {
-            const token = localStorage.getItem('adminToken');
-            const response = await fetch(`${API_URL}/api/admin/solicitacoes/${id}/aprovar`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-
-            if (response.ok) {
-                await carregarSolicitacoes();
-                await carregarEstatisticas();
-            }
-        };
-
-        window.recusar = async function(id) {
-            const token = localStorage.getItem('adminToken');
-            const response = await fetch(`${API_URL}/api/admin/solicitacoes/${id}/recusar`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-
-            if (response.ok) {
-                await carregarSolicitacoes();
-                await carregarEstatisticas();
-            }
-        };
-
-        window.aplicarFiltros = function() {
-            carregarSolicitacoes();
         };
     </script>
 </body>

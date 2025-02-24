@@ -3,785 +3,120 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Empréstimos - Portal Unificado</title>
+    <title>Sistema de Empréstimos</title>
+    <link rel="stylesheet" href="frontend/src/styles/main.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root {
-            --primary-color: #ff7b3e;
-            --secondary-color: #ffb347;
-            --error-color: #dc3545;
-            --success-color: #28a745;
-            --warning-color: #ffc107;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 0;
-            min-height: 100vh;
-            background: #f5f5f5;
-        }
-
-        .navbar {
-            background: var(--primary-color);
-            padding: 1rem;
-            color: white;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .navbar-brand {
-            font-size: 1.5rem;
-            font-weight: bold;
-            text-decoration: none;
-            color: white;
-        }
-
-        .navbar-menu {
-            display: flex;
-            gap: 1rem;
-        }
-
-        .navbar-menu a {
-            color: white;
-            text-decoration: none;
-            padding: 0.5rem 1rem;
-            border-radius: 5px;
-            transition: background 0.3s;
-        }
-
-        .navbar-menu a:hover {
-            background: rgba(255,255,255,0.1);
-        }
-
-        .main-container {
+        .welcome-container {
             max-width: 1200px;
-            margin: 2rem auto;
-            padding: 0 1rem;
-        }
-
-        .welcome-section {
-            background: white;
-            padding: 2rem;
-            border-radius: 10px;
-            margin-bottom: 2rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            text-align: center;
-        }
-
-        .cards-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .card {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 10px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .card h3 {
-            color: var(--primary-color);
-            margin-top: 0;
-        }
-
-        .btn {
-            background: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 0.8rem 1.5rem;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1rem;
-            text-decoration: none;
-            display: inline-block;
-            transition: transform 0.2s, background 0.2s;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            background: var(--secondary-color);
-        }
-
-        .btn-outline {
-            background: transparent;
-            border: 2px solid var(--primary-color);
-            color: var(--primary-color);
-        }
-
-        .btn-outline:hover {
-            background: var(--primary-color);
-            color: white;
-        }
-
-        .status-badge {
-            padding: 0.3rem 0.8rem;
-            border-radius: 15px;
-            font-size: 0.9rem;
-            font-weight: 500;
-        }
-
-        .status-pendente {
-            background: var(--warning-color);
-            color: #000;
-        }
-
-        .status-aprovado {
-            background: var(--success-color);
-            color: white;
-        }
-
-        .status-recusado {
-            background: var(--error-color);
-            color: white;
-        }
-
-        .auth-container {
-            max-width: 400px;
-            margin: 2rem auto;
-            background: white;
-            padding: 2rem;
-            border-radius: 10px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .form-group {
-            margin-bottom: 1rem;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            color: #333;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 0.8rem;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 1rem;
-        }
-
-        .form-group input:focus {
-            outline: none;
-            border-color: var(--primary-color);
-        }
-
-        .tabs {
-            display: flex;
-            margin-bottom: 2rem;
-            border-bottom: 1px solid #ddd;
-        }
-
-        .tab {
-            padding: 1rem 2rem;
-            cursor: pointer;
-            border: none;
-            background: none;
-            font-size: 1rem;
-            color: #666;
-            border-bottom: 3px solid transparent;
-            margin-bottom: -1px;
-        }
-
-        .tab.active {
-            color: var(--primary-color);
-            border-bottom-color: var(--primary-color);
-        }
-
-        #simuladorSection, #minhaContaSection, #loginSection {
-            display: none;
-        }
-
-        .error-message {
-            color: var(--error-color);
-            margin-top: 0.5rem;
-            font-size: 0.9rem;
-        }
-
-        .success-message {
-            color: var(--success-color);
-            margin-top: 0.5rem;
-            font-size: 0.9rem;
-        }
-
-        /* Estilos para autenticação */
-        .auth-section {
-            max-width: 600px;
-            margin: 0 auto;
+            margin: 50px auto;
             padding: 20px;
         }
 
-        .auth-container {
+        .welcome-header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .welcome-header h1 {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+        }
+
+        .welcome-header p {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+        }
+
+        .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+
+        .action-card {
             background: white;
             padding: 30px;
             border-radius: var(--border-radius);
             box-shadow: var(--box-shadow);
-        }
-
-        .tabs {
-            display: flex;
-            margin-bottom: 30px;
-            border-bottom: 2px solid #ddd;
-        }
-
-        .tab {
-            padding: 15px 30px;
-            cursor: pointer;
-            border: none;
-            background: none;
-            font-size: 16px;
-            font-weight: 600;
-            color: #666;
-        }
-
-        .tab.active {
-            color: var(--primary-color);
-            border-bottom: 3px solid var(--primary-color);
-            margin-bottom: -2px;
-        }
-
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        .error-message {
-            color: var(--danger-color);
-            font-size: 14px;
-            margin-top: 5px;
-            display: none;
-        }
-
-        .success-message {
-            color: var(--success-color);
             text-align: center;
-            padding: 15px;
-            border-radius: 8px;
-            background: #d4edda;
-            margin-bottom: 20px;
-            display: none;
+            transition: transform var(--transition-speed) var(--transition-timing);
         }
 
-        .link-recuperar-senha {
-            display: block;
-            text-align: right;
-            margin-top: 5px;
+        .action-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .action-card i {
+            font-size: 48px;
             color: var(--primary-color);
-            text-decoration: none;
-            font-size: 14px;
+            margin-bottom: 20px;
         }
 
-        .link-recuperar-senha:hover {
-            text-decoration: underline;
+        .action-card h2 {
+            color: var(--text-primary);
+            margin-bottom: 15px;
+        }
+
+        .action-card p {
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 50px;
+            padding: 20px;
+            color: var(--text-secondary);
         }
     </style>
 </head>
 <body>
-    <nav class="navbar">
-        <a href="#" class="navbar-brand">
-            <i class="fas fa-money-bill-wave"></i> Sistema de Empréstimos
-        </a>
-        <div class="navbar-menu" id="navMenu">
-            <a href="#" onclick="showSection('simulador')">
-                <i class="fas fa-calculator"></i> Simulador
-            </a>
-            <a href="#" onclick="showSection('minhaConta')" id="contaLink" style="display: none">
-                <i class="fas fa-user"></i> Minha Conta
-            </a>
-            <a href="#" onclick="showSection('login')" id="loginLink">
-                <i class="fas fa-sign-in-alt"></i> Entrar
-            </a>
-            <a href="#" onclick="logout()" id="logoutLink" style="display: none">
-                <i class="fas fa-sign-out-alt"></i> Sair
-            </a>
-        </div>
-    </nav>
+    <div class="welcome-container">
+        <header class="welcome-header">
+            <h1>Sistema de Empréstimos</h1>
+            <p>Seja bem-vindo ao nosso sistema de empréstimos</p>
+        </header>
 
-    <div class="main-container">
-        <!-- Seção de Login/Cadastro -->
-        <div id="authSection" class="auth-section">
-            <div class="auth-container">
-                <div class="tabs">
-                    <button class="tab active" onclick="switchTab('login')">Login</button>
-                    <button class="tab" onclick="switchTab('cadastro')">Cadastro</button>
-                </div>
+        <div class="actions-grid">
+            <!-- Área de Login -->
+            <div class="action-card">
+                <i class="fas fa-sign-in-alt"></i>
+                <h2>Já sou Cliente</h2>
+                <p>Acesse sua conta para gerenciar seus empréstimos</p>
+                <a href="cliente/login.html" class="btn btn-primary">
+                    Fazer Login
+                </a>
+            </div>
 
-                <div id="loginTab" class="tab-content active">
-                    <form id="loginForm">
-                        <div class="form-group">
-                            <label for="loginEmail">Email</label>
-                            <input type="email" id="loginEmail" required>
-                            <div class="error-message" id="loginEmailError"></div>
-                        </div>
+            <!-- Área de Cadastro -->
+            <div class="action-card">
+                <i class="fas fa-user-plus"></i>
+                <h2>Novo por Aqui?</h2>
+                <p>Cadastre-se para solicitar seu primeiro empréstimo</p>
+                <a href="cliente/cadastro.html" class="btn btn-primary">
+                    Criar Conta
+                </a>
+            </div>
 
-                        <div class="form-group">
-                            <label for="loginSenha">Senha</label>
-                            <input type="password" id="loginSenha" required>
-                            <div class="error-message" id="loginSenhaError"></div>
-                        </div>
-
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-sign-in-alt"></i> Entrar
-                        </button>
-                    </form>
-                </div>
-
-                <div id="cadastroTab" class="tab-content">
-                    <form id="cadastroForm">
-                        <div class="form-group">
-                            <label for="nome">Nome Completo</label>
-                            <input type="text" id="nome" required>
-                            <div class="error-message" id="nomeError"></div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="cpf">CPF</label>
-                            <input type="text" id="cpf" required>
-                            <div class="error-message" id="cpfError"></div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="email">Email</label>
-                            <input type="email" id="email" required>
-                            <div class="error-message" id="emailError"></div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="telefone">Telefone</label>
-                            <input type="tel" id="telefone" required>
-                            <div class="error-message" id="telefoneError"></div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="dataNascimento">Data de Nascimento</label>
-                            <input type="date" id="dataNascimento" required>
-                            <div class="error-message" id="dataNascimentoError"></div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="endereco">Endereço Completo</label>
-                            <input type="text" id="endereco" required>
-                            <div class="error-message" id="enderecoError"></div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="senha">Senha</label>
-                            <input type="password" id="senha" required>
-                            <div class="error-message" id="senhaError"></div>
-                            <a href="#" onclick="solicitarRecuperacaoSenha()" class="link-recuperar-senha">
-                                Esqueceu sua senha?
-                            </a>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="confirmarSenha">Confirmar Senha</label>
-                            <input type="password" id="confirmarSenha" required>
-                            <div class="error-message" id="confirmarSenhaError"></div>
-                        </div>
-
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-user-plus"></i> Cadastrar
-                        </button>
-                    </form>
-                </div>
+            <!-- Simulação -->
+            <div class="action-card">
+                <i class="fas fa-calculator"></i>
+                <h2>Simular Empréstimo</h2>
+                <p>Faça uma simulação e descubra as melhores condições</p>
+                <a href="cliente/simulador.html" class="btn btn-primary">
+                    Simular Agora
+                </a>
             </div>
         </div>
 
-        <!-- Seção do Simulador -->
-        <section id="simuladorSection">
-            <div class="welcome-section">
-                <h1>Simulador de Empréstimos</h1>
-                <p>Simule seu empréstimo e receba uma proposta personalizada</p>
-            </div>
-
-            <div class="card">
-                <form id="simuladorForm">
-                    <div class="form-group">
-                        <label for="valorEmprestimo">Valor Desejado</label>
-                        <input type="text" id="valorEmprestimo" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="parcelas">Número de Parcelas</label>
-                        <input type="number" id="parcelas" min="1" max="24" required>
-                    </div>
-                    <button type="submit" class="btn">
-                        <i class="fas fa-calculator"></i> Simular
-                    </button>
-                </form>
-            </div>
-
-            <div id="resultadoSimulacao" style="display: none" class="card">
-                <h3>Resultado da Simulação</h3>
-                <div id="resultadoContent"></div>
-                <button onclick="solicitarEmprestimo()" class="btn" style="margin-top: 1rem">
-                    <i class="fas fa-check"></i> Solicitar Empréstimo
-                </button>
-            </div>
-        </section>
-
-        <!-- Seção de Minha Conta -->
-        <section id="minhaContaSection">
-            <div class="welcome-section">
-                <h1>Minha Conta</h1>
-                <p>Bem-vindo(a), <span id="nomeCliente">Cliente</span></p>
-            </div>
-
-            <div class="cards-grid">
-                <div class="card">
-                    <h3>Total de Empréstimos</h3>
-                    <div id="totalEmprestimos">0</div>
-                </div>
-                <div class="card">
-                    <h3>Valor Total Devido</h3>
-                    <div id="valorTotalDevido">R$ 0,00</div>
-                </div>
-                <div class="card">
-                    <h3>Próximo Vencimento</h3>
-                    <div id="proximoVencimento">Nenhum</div>
-                </div>
-                <div class="card">
-                    <h3>Score</h3>
-                    <div id="scoreCliente">0</div>
-                </div>
-            </div>
-
-            <div class="card">
-                <h3>Meus Empréstimos</h3>
-                <div id="listaEmprestimos"></div>
-            </div>
-        </section>
+        <footer class="footer">
+            <p>&copy; 2024 Sistema de Empréstimos</p>
+            <p>Todos os direitos reservados</p>
+            <small><a href="sistema-admin/" style="color: inherit; text-decoration: none;">Área Restrita</a></small>
+        </footer>
     </div>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/inputmask/5.0.6/inputmask.min.js"></script>
-    <script>
-        const API_URL = 'http://localhost:3000';
-        let simulacaoAtual = null;
-
-        // Inicialização
-        document.addEventListener('DOMContentLoaded', () => {
-            verificarAuth();
-            setupMasks();
-        });
-
-        function setupMasks() {
-            Inputmask("currency", {
-                prefix: "R$ ",
-                groupSeparator: ".",
-                alias: "numeric",
-                placeholder: "0",
-                autoGroup: true,
-                digits: 2,
-                digitsOptional: false,
-                clearMaskOnLostFocus: false
-            }).mask(document.getElementById("valorEmprestimo"));
-
-            Inputmask("999.999.999-99").mask(document.getElementById("cpf"));
-            Inputmask("(99) 99999-9999").mask(document.getElementById("telefone"));
-        }
-
-        function verificarAuth() {
-            const token = localStorage.getItem('clienteToken');
-            if (token) {
-                document.getElementById('authSection').style.display = 'none';
-                document.getElementById('simuladorSection').style.display = 'block';
-                const clienteData = JSON.parse(localStorage.getItem('clienteData'));
-                document.getElementById('nomeCliente').textContent = clienteData.nome;
-            } else {
-                document.getElementById('authSection').style.display = 'block';
-                document.getElementById('simuladorSection').style.display = 'none';
-            }
-        }
-
-        function showSection(section) {
-            document.getElementById('simuladorSection').style.display = 'none';
-            document.getElementById('minhaContaSection').style.display = 'none';
-            document.getElementById('loginSection').style.display = 'none';
-
-            document.getElementById(`${section}Section`).style.display = 'block';
-        }
-
-        function switchTab(tab) {
-            document.querySelectorAll('.tab-content').forEach(content => {
-                content.classList.remove('active');
-            });
-            document.querySelectorAll('.tab').forEach(t => {
-                t.classList.remove('active');
-            });
-            document.getElementById(`${tab}Tab`).classList.add('active');
-            document.querySelector(`.tab[onclick="switchTab('${tab}')"]`).classList.add('active');
-        }
-
-        // Simulador
-        document.getElementById('simuladorForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const valor = document.getElementById('valorEmprestimo').value.replace(/[^\d]/g, '') / 100;
-            const parcelas = document.getElementById('parcelas').value;
-
-            try {
-                const response = await fetch(`${API_URL}/api/simulacao`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ valor, parcelas })
-                });
-
-                if (response.ok) {
-                    const resultado = await response.json();
-                    simulacaoAtual = resultado;
-                    
-                    document.getElementById('resultadoContent').innerHTML = `
-                        <p>Valor solicitado: ${formatarMoeda(valor)}</p>
-                        <p>Valor da parcela: ${formatarMoeda(resultado.valor_parcela)}</p>
-                        <p>Total a pagar: ${formatarMoeda(resultado.valor_total)}</p>
-                        <p>Taxa de juros: ${resultado.taxa_juros}% ao mês</p>
-                    `;
-                    
-                    document.getElementById('resultadoSimulacao').style.display = 'block';
-                }
-            } catch (error) {
-                console.error('Erro na simulação:', error);
-                alert('Erro ao realizar simulação');
-            }
-        });
-
-        // Login
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const email = document.getElementById('loginEmail').value;
-            const senha = document.getElementById('loginSenha').value;
-
-            try {
-                const response = await fetch(`${API_URL}/api/clientes/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, senha })
-                });
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    localStorage.setItem('clienteToken', data.token);
-                    localStorage.setItem('clienteData', JSON.stringify(data.cliente));
-                    verificarAuth();
-                } else {
-                    document.getElementById('loginEmailError').textContent = data.error;
-                    document.getElementById('loginEmailError').style.display = 'block';
-                }
-            } catch (error) {
-                console.error('Erro:', error);
-                document.getElementById('loginEmailError').textContent = 'Erro ao fazer login';
-                document.getElementById('loginEmailError').style.display = 'block';
-            }
-        });
-
-        // Cadastro
-        document.getElementById('cadastroForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            // Limpar mensagens de erro
-            document.querySelectorAll('.error-message').forEach(error => {
-                error.style.display = 'none';
-            });
-
-            // Validar senha
-            const senha = document.getElementById('senha').value;
-            const confirmarSenha = document.getElementById('confirmarSenha').value;
-            if (senha !== confirmarSenha) {
-                document.getElementById('confirmarSenhaError').textContent = 'As senhas não coincidem';
-                document.getElementById('confirmarSenhaError').style.display = 'block';
-                return;
-            }
-
-            const formData = {
-                nome: document.getElementById('nome').value,
-                cpf: document.getElementById('cpf').value.replace(/\D/g, ''),
-                email: document.getElementById('email').value,
-                telefone: document.getElementById('telefone').value.replace(/\D/g, ''),
-                data_nascimento: document.getElementById('dataNascimento').value,
-                endereco: document.getElementById('endereco').value,
-                senha: senha
-            };
-
-            try {
-                const response = await fetch(`${API_URL}/api/clientes/registro`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(formData)
-                });
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    alert('Cadastro realizado com sucesso! Faça login para continuar.');
-                    document.getElementById('cadastroForm').reset();
-                    switchTab('login');
-                } else {
-                    if (data.error === 'CPF_EXISTE') {
-                        document.getElementById('cpfError').textContent = 'CPF já cadastrado';
-                        document.getElementById('cpfError').style.display = 'block';
-                    } else if (data.error === 'EMAIL_EXISTE') {
-                        document.getElementById('emailError').textContent = 'Email já cadastrado';
-                        document.getElementById('emailError').style.display = 'block';
-                    } else {
-                        document.getElementById('nomeError').textContent = data.error;
-                        document.getElementById('nomeError').style.display = 'block';
-                    }
-                }
-            } catch (error) {
-                console.error('Erro:', error);
-                document.getElementById('nomeError').textContent = 'Erro ao realizar cadastro';
-                document.getElementById('nomeError').style.display = 'block';
-            }
-        });
-
-        async function carregarDadosCliente() {
-            try {
-                const response = await fetch(`${API_URL}/api/clientes/dashboard`, {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('clienteToken')}`
-                    }
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    
-                    document.getElementById('totalEmprestimos').textContent = data.total_emprestimos;
-                    document.getElementById('valorTotalDevido').textContent = formatarMoeda(data.valor_total_devido);
-                    document.getElementById('proximoVencimento').textContent = data.proximo_vencimento ? formatarData(data.proximo_vencimento) : 'Nenhum';
-                    document.getElementById('scoreCliente').textContent = data.score;
-
-                    renderizarEmprestimos(data.emprestimos);
-                }
-            } catch (error) {
-                console.error('Erro ao carregar dados:', error);
-            }
-        }
-
-        function renderizarEmprestimos(emprestimos) {
-            const container = document.getElementById('listaEmprestimos');
-            container.innerHTML = '';
-
-            emprestimos.forEach(emp => {
-                const card = document.createElement('div');
-                card.className = 'card';
-                card.style.marginBottom = '1rem';
-                
-                card.innerHTML = `
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                        <h4 style="margin: 0">Empréstimo #${emp.id}</h4>
-                        <span class="status-badge status-${emp.status}">${emp.status}</span>
-                    </div>
-                    <p>Valor: ${formatarMoeda(emp.valor)}</p>
-                    <p>Parcelas pagas: ${emp.parcelas_pagas}/${emp.total_parcelas}</p>
-                    <p>Próximo vencimento: ${formatarData(emp.proximo_vencimento)}</p>
-                    ${emp.status === 'aprovado' ? `
-                        <button onclick="realizarPagamento(${emp.id})" class="btn btn-outline">
-                            <i class="fas fa-money-bill-wave"></i> Realizar Pagamento
-                        </button>
-                    ` : ''}
-                `;
-                
-                container.appendChild(card);
-            });
-        }
-
-        async function solicitarEmprestimo() {
-            if (!simulacaoAtual) return;
-            
-            if (!localStorage.getItem('clienteToken')) {
-                alert('Faça login para solicitar o empréstimo');
-                showSection('login');
-                return;
-            }
-
-            try {
-                const response = await fetch(`${API_URL}/api/solicitacoes`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('clienteToken')}`
-                    },
-                    body: JSON.stringify(simulacaoAtual)
-                });
-
-                if (response.ok) {
-                    alert('Solicitação enviada com sucesso! Acompanhe o status na sua conta.');
-                    showSection('minhaConta');
-                    carregarDadosCliente();
-                } else {
-                    alert('Erro ao enviar solicitação');
-                }
-            } catch (error) {
-                console.error('Erro:', error);
-                alert('Erro ao enviar solicitação');
-            }
-        }
-
-        async function realizarPagamento(emprestimoId) {
-            // Implementar lógica de pagamento
-            alert('Funcionalidade de pagamento em desenvolvimento');
-        }
-
-        function logout() {
-            localStorage.removeItem('clienteToken');
-            localStorage.removeItem('clienteData');
-            verificarAuth();
-        }
-
-        function formatarMoeda(valor) {
-            return valor.toLocaleString('pt-BR', {
-                style: 'currency',
-                currency: 'BRL'
-            });
-        }
-
-        function formatarData(data) {
-            return new Date(data).toLocaleDateString('pt-BR');
-        }
-
-        async function solicitarRecuperacaoSenha() {
-            const email = document.getElementById('email').value;
-            
-            if (!email) {
-                alert('Por favor, digite seu email antes de solicitar a recuperação de senha.');
-                return;
-            }
-
-            try {
-                const response = await fetch('http://localhost:3000/api/auth/recuperar-senha', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        email,
-                        tipo: 'cliente'
-                    })
-                });
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    alert('Um email com instruções para recuperação de senha foi enviado para o seu endereço de email.');
-                } else {
-                    alert(data.error || 'Erro ao solicitar recuperação de senha');
-                }
-            } catch (error) {
-                console.error('Erro:', error);
-                alert('Erro ao conectar com o servidor');
-            }
-        }
-    </script>
 </body>
 </html> 
