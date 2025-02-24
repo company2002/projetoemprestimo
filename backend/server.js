@@ -11,8 +11,17 @@ require('./src/scripts/scheduler');
 
 const app = express();
 
+// Configuração CORS
+const corsOptions = {
+    origin: process.env.CORS_ORIGIN || 'https://company2002.github.io',
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
+    optionsSuccessStatus: 200
+};
+
 // Middlewares
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -25,6 +34,11 @@ if (!require('fs').existsSync(logDir)) {
 // Rotas
 app.use('/api/auth', authRoutes);
 app.use('/api/solicitacoes', solicitacoesRoutes);
+
+// Rota de teste/status
+app.get('/status', (req, res) => {
+    res.json({ status: 'online', timestamp: new Date() });
+});
 
 // Tratamento de erros
 app.use((err, req, res, next) => {
