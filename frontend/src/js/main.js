@@ -1,10 +1,12 @@
+import { API_URL } from './config.js';
+
 // Variável para controlar se a simulação foi realizada
 let simulacaoRealizada = false;
 
 // Função para enviar dados para o backend
 async function enviarParaServidor(dados) {
     try {
-        const response = await fetch('http://localhost:3000/api/solicitacoes', {
+        const response = await fetch(`${API_URL}/api/solicitacoes`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

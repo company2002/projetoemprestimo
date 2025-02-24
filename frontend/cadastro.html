@@ -181,8 +181,8 @@
         </div>
     </div>
 
-    <script>
-        const API_URL = 'https://sistema-emprestimo.onrender.com';
+    <script type="module">
+        import { API_URL } from './src/js/config.js';
 
         // Funções de máscara
         document.getElementById('cpf').addEventListener('input', function(e) {
@@ -225,7 +225,7 @@
         }
 
         // Função para mostrar/esconder tabs
-        function showTab(tabName) {
+        window.showTab = function(tabName) {
             document.querySelectorAll('.tab-content').forEach(content => {
                 content.classList.remove('active');
             });
@@ -234,10 +234,10 @@
             });
             document.getElementById(tabName).classList.add('active');
             document.querySelector(`.tab[onclick="showTab('${tabName}')"]`).classList.add('active');
-        }
+        };
 
         // Função para fazer login
-        async function fazerLogin(event) {
+        window.fazerLogin = async function(event) {
             event.preventDefault();
             
             const email = document.getElementById('loginEmail').value;
@@ -270,10 +270,10 @@
                 console.error('Erro:', error);
                 alert('Erro ao fazer login. Tente novamente.');
             }
-        }
+        };
 
         // Função para fazer cadastro
-        async function fazerCadastro(event) {
+        window.fazerCadastro = async function(event) {
             event.preventDefault();
 
             // Resetar mensagens de erro
@@ -345,7 +345,7 @@
                 console.error('Erro:', error);
                 alert('Erro ao fazer cadastro. Tente novamente.');
             }
-        }
+        };
     </script>
 </body>
 </html> 

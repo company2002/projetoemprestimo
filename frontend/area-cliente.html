@@ -665,7 +665,9 @@
         </div>
     </div>
 
-    <script>
+    <script type="module">
+        import { API_URL } from './src/js/config.js';
+
         // Verificar autenticação
         const token = localStorage.getItem('clienteToken');
         if (!token) {
@@ -675,7 +677,7 @@
         // Carregar dados do cliente
         async function carregarDadosCliente() {
             try {
-                const response = await fetch('http://localhost:3000/api/clientes/perfil', {
+                const response = await fetch(`${API_URL}/api/clientes/perfil`, {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
@@ -705,7 +707,7 @@
         // Carregar empréstimos
         async function carregarEmprestimos() {
             try {
-                const response = await fetch('http://localhost:3000/api/clientes/solicitacoes', {
+                const response = await fetch(`${API_URL}/api/clientes/solicitacoes`, {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
@@ -826,7 +828,7 @@
             }
 
             try {
-                const response = await fetch('http://localhost:3000/api/solicitacoes', {
+                const response = await fetch(`${API_URL}/api/solicitacoes`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -876,7 +878,7 @@
 
         async function carregarPerfil() {
             try {
-                const response = await fetch('http://localhost:3000/api/clientes/perfil', {
+                const response = await fetch(`${API_URL}/api/clientes/perfil`, {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
@@ -906,7 +908,7 @@
             };
 
             try {
-                const response = await fetch('http://localhost:3000/api/clientes/perfil', {
+                const response = await fetch(`${API_URL}/api/clientes/perfil`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -929,7 +931,7 @@
 
         async function carregarHistoricoPagamentos() {
             try {
-                const response = await fetch('http://localhost:3000/api/clientes/pagamentos', {
+                const response = await fetch(`${API_URL}/api/clientes/pagamentos`, {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }

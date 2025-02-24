@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Área Administrativa - Sistema de Empréstimos</title>
-    <link rel="stylesheet" href="../src/styles/main.css">
+    <title>Login Administrativo - Sistema de Empréstimos</title>
+    <link rel="stylesheet" href="../frontend/src/styles/main.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         .auth-container {
@@ -169,11 +169,10 @@
     </style>
 </head>
 <body>
-    <!-- Container de Autenticação -->
-    <div id="authContainer" class="auth-container">
+    <div class="auth-container">
         <div class="auth-header">
-            <h1><i class="fas fa-user-shield"></i> Área Administrativa</h1>
-            <p>Faça login para acessar o painel</p>
+            <h1><i class="fas fa-user-tie"></i> Área Administrativa</h1>
+            <p>Acesso restrito aos administradores</p>
         </div>
 
         <form id="loginForm" onsubmit="return fazerLogin(event)">
@@ -185,10 +184,6 @@
             <div class="form-group">
                 <label for="senha">Senha</label>
                 <input type="password" id="senha" required>
-                <div class="error-message" id="senhaError"></div>
-                <a href="#" onclick="solicitarRecuperacaoSenha()" class="link-recuperar-senha">
-                    Esqueceu sua senha?
-                </a>
             </div>
 
             <button type="submit" class="btn btn-primary">
@@ -196,135 +191,45 @@
             </button>
 
             <div id="errorMessage" class="error-message"></div>
-            
-            <p style="text-align: center; margin-top: 20px;">
-                Não tem uma conta? <a href="cadastro.html" style="color: var(--primary-color); text-decoration: none;">Solicitar acesso</a>
-            </p>
         </form>
     </div>
 
-    <!-- Container do Painel Administrativo -->
-    <div id="adminContainer" class="admin-container">
-        <div class="header-actions">
-            <h1><i class="fas fa-user-shield"></i> Painel Administrativo</h1>
-            <div class="user-info">
-                <span id="userName">Admin</span>
-                <button onclick="logout()" class="logout-btn">
-                    <i class="fas fa-sign-out-alt"></i> Sair
-                </button>
-            </div>
-        </div>
+    <script type="module">
+        import { API_URL } from '../frontend/src/js/config.js';
 
-        <div class="stats-grid">
-            <div class="stat-card">
-                <h3>Total de Solicitações</h3>
-                <div class="stat-value" id="totalSolicitacoes">0</div>
-            </div>
-            <div class="stat-card">
-                <h3>Valor Total</h3>
-                <div class="stat-value" id="valorTotal">R$ 0,00</div>
-            </div>
-            <div class="stat-card">
-                <h3>Solicitações Hoje</h3>
-                <div class="stat-value" id="solicitacoesHoje">0</div>
-            </div>
-            <div class="stat-card">
-                <h3>Taxa Média de Juros</h3>
-                <div class="stat-value" id="taxaMediaJuros">0%</div>
-            </div>
-        </div>
-
-        <div class="filters">
-            <div class="search-box">
-                <input type="text" id="searchInput" placeholder="Buscar solicitações..." class="form-control">
-            </div>
-            <select id="filterTipo" class="form-control">
-                <option value="">Todos os tipos</option>
-                <option value="avulso">Avulso</option>
-                <option value="parcelado">Parcelado</option>
-                <option value="cartao">Cartão</option>
-            </select>
-            <button class="btn btn-primary" onclick="exportarDados()">
-                <i class="fas fa-download"></i> Exportar Excel
-            </button>
-            <button class="btn btn-danger" onclick="baixarRelatorioPDF()">
-                <i class="fas fa-file-pdf"></i> Relatório PDF
-            </button>
-        </div>
-
-        <div class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Data</th>
-                        <th>Nome</th>
-                        <th>Telefone</th>
-                        <th>Valor</th>
-                        <th>Tipo</th>
-                        <th>Status</th>
-                        <th>Ações</th>
-                    </tr>
-                </thead>
-                <tbody id="solicitacoesTable">
-                    <!-- Dados serão inseridos aqui via JavaScript -->
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- Modal de Detalhes -->
-    <div id="modalDetalhes" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2>Detalhes da Solicitação</h2>
-            <div id="detalhesContent"></div>
-        </div>
-    </div>
-
-    <script>
-        // Verificar autenticação ao carregar a página
-        document.addEventListener('DOMContentLoaded', function() {
-            verificarAuth();
-        });
-
-        // Função para fazer login
         async function fazerLogin(event) {
             event.preventDefault();
-            
+
             const email = document.getElementById('email').value;
             const senha = document.getElementById('senha').value;
             const errorMessage = document.getElementById('errorMessage');
 
             try {
-                const response = await fetch('http://localhost:3000/api/auth/login', {
+                const response = await fetch(`${API_URL}/api/auth/login`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ email, senha })
+                    body: JSON.stringify({ 
+                        email,
+                        senha,
+                        tipo: 'admin'
+                    })
                 });
 
                 const data = await response.json();
 
                 if (response.ok) {
-                    // Verificar se é um usuário admin
-                    if (data.usuario.role !== 'admin' && data.usuario.role !== 'master') {
-                        errorMessage.textContent = 'Acesso não autorizado';
+                    // Verificar se o usuário é admin
+                    if (data.usuario.role !== 'admin') {
+                        errorMessage.textContent = 'Acesso não autorizado. Apenas administradores podem acessar esta área.';
                         errorMessage.style.display = 'block';
                         return;
                     }
 
-                    // Salvar dados do usuário
                     localStorage.setItem('adminToken', data.token);
                     localStorage.setItem('adminData', JSON.stringify(data.usuario));
-                    
-                    // Mostrar painel administrativo
-                    document.getElementById('authContainer').style.display = 'none';
-                    document.getElementById('adminContainer').style.display = 'block';
-                    document.getElementById('userName').textContent = data.usuario.nome;
-                    
-                    // Carregar dados
-                    carregarDados();
+                    window.location.href = 'painel.html';
                 } else {
                     errorMessage.textContent = data.error || 'Erro ao fazer login';
                     errorMessage.style.display = 'block';
@@ -336,176 +241,8 @@
             }
         }
 
-        // Função para verificar autenticação
-        function verificarAuth() {
-            const token = localStorage.getItem('adminToken');
-            const adminData = localStorage.getItem('adminData');
-
-            if (token && adminData) {
-                const usuario = JSON.parse(adminData);
-                document.getElementById('authContainer').style.display = 'none';
-                document.getElementById('adminContainer').style.display = 'block';
-                document.getElementById('userName').textContent = usuario.nome;
-                carregarDados();
-            } else {
-                document.getElementById('authContainer').style.display = 'block';
-                document.getElementById('adminContainer').style.display = 'none';
-            }
-        }
-
-        // Função para fazer logout
-        function logout() {
-            localStorage.removeItem('adminToken');
-            localStorage.removeItem('adminData');
-            verificarAuth();
-        }
-
-        // Função para carregar dados
-        async function carregarDados() {
-            try {
-                const response = await fetch('http://localhost:3000/api/solicitacoes', {
-                    headers: {
-                        'Authorization': 'Bearer ' + localStorage.getItem('adminToken')
-                    }
-                });
-                
-                if (!response.ok) {
-                    throw new Error('Erro ao carregar dados');
-                }
-
-                const data = await response.json();
-                atualizarEstatisticas(data);
-                preencherTabela(data);
-            } catch (error) {
-                console.error('Erro:', error);
-                alert('Erro ao carregar dados');
-            }
-        }
-
-        // Função para atualizar estatísticas
-        function atualizarEstatisticas(data) {
-            document.getElementById('totalSolicitacoes').textContent = data.length;
-            
-            const valorTotal = data.reduce((acc, curr) => acc + parseFloat(curr.valor), 0);
-            document.getElementById('valorTotal').textContent = formatarMoeda(valorTotal);
-            
-            const hoje = new Date().toISOString().split('T')[0];
-            const solicitacoesHoje = data.filter(s => s.data_hora.startsWith(hoje)).length;
-            document.getElementById('solicitacoesHoje').textContent = solicitacoesHoje;
-            
-            const mediaJuros = data.reduce((acc, curr) => acc + parseFloat(curr.juros || 0), 0) / data.length;
-            document.getElementById('taxaMediaJuros').textContent = `${mediaJuros.toFixed(1)}%`;
-        }
-
-        // Função para preencher tabela
-        function preencherTabela(data) {
-            const tbody = document.getElementById('solicitacoesTable');
-            tbody.innerHTML = '';
-
-            data.forEach(solicitacao => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${formatarData(solicitacao.data_hora)}</td>
-                    <td>${solicitacao.nome}</td>
-                    <td>${solicitacao.telefone}</td>
-                    <td>${formatarMoeda(solicitacao.valor)}</td>
-                    <td>${solicitacao.tipo}</td>
-                    <td><span class="status-badge">${solicitacao.status || 'Pendente'}</span></td>
-                    <td class="action-buttons">
-                        <button class="btn btn-primary btn-small" onclick="verDetalhes(${solicitacao.id})">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                        <button class="btn btn-success btn-small" onclick="aprovar(${solicitacao.id})">
-                            <i class="fas fa-check"></i>
-                        </button>
-                        <button class="btn btn-danger btn-small" onclick="recusar(${solicitacao.id})">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        // Funções auxiliares
-        function formatarData(data) {
-            return new Date(data).toLocaleString('pt-BR');
-        }
-
-        function formatarMoeda(valor) {
-            return parseFloat(valor).toLocaleString('pt-BR', {
-                style: 'currency',
-                currency: 'BRL'
-            });
-        }
-
-        // Função para exportar dados
-        function exportarDados() {
-            // Implementar exportação para CSV/Excel
-        }
-
-        // Função para baixar relatório PDF
-        async function baixarRelatorioPDF() {
-            const dataInicio = prompt('Digite a data inicial (YYYY-MM-DD):', moment().subtract(7, 'days').format('YYYY-MM-DD'));
-            const dataFim = prompt('Digite a data final (YYYY-MM-DD):', moment().format('YYYY-MM-DD'));
-
-            if (!dataInicio || !dataFim) return;
-
-            try {
-                const response = await fetch(`http://localhost:3000/api/solicitacoes/relatorio-pdf?dataInicio=${dataInicio}&dataFim=${dataFim}`, {
-                    headers: {
-                        'Authorization': 'Bearer ' + localStorage.getItem('adminToken')
-                    }
-                });
-
-                if (!response.ok) throw new Error('Erro ao gerar relatório');
-
-                const blob = await response.blob();
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `relatorio_${moment().format('YYYY-MM-DD')}.pdf`;
-                document.body.appendChild(a);
-                a.click();
-                window.URL.revokeObjectURL(url);
-            } catch (error) {
-                console.error('Erro:', error);
-                alert('Erro ao gerar relatório PDF');
-            }
-        }
-
-        async function solicitarRecuperacaoSenha() {
-            const email = document.getElementById('email').value;
-            
-            if (!email) {
-                alert('Por favor, digite seu email antes de solicitar a recuperação de senha.');
-                return;
-            }
-
-            try {
-                const response = await fetch('http://localhost:3000/api/auth/recuperar-senha', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        email,
-                        tipo: 'admin'
-                    })
-                });
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    alert('Um email com instruções para recuperação de senha foi enviado para o seu endereço de email.');
-                } else {
-                    alert(data.error || 'Erro ao solicitar recuperação de senha');
-                }
-            } catch (error) {
-                console.error('Erro:', error);
-                alert('Erro ao conectar com o servidor');
-            }
-        }
+        // Adicionar event listener ao formulário
+        document.getElementById('loginForm').addEventListener('submit', fazerLogin);
     </script>
 </body>
 </html> 

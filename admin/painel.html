@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Administrativo - Sistema de Empréstimos</title>
+    <link rel="stylesheet" href="../frontend/src/styles/main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .dashboard {
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            background: white;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+        }
+
+        .menu {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .menu-item {
+            background: white;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            cursor: pointer;
+            transition: transform 0.3s;
+            text-align: center;
+        }
+
+        .menu-item:hover {
+            transform: translateY(-5px);
+        }
+
+        .menu-item i {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: var(--primary-color);
+        }
+
+        .content {
+            background: white;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+        }
+
+        .search-bar {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .search-bar input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+        }
+
+        .filters {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .filter-select {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+        }
+
+        .client-card {
+            background: #f8f9fa;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: var(--border-radius);
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .client-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+
+        .client-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .info-group {
+            margin-bottom: 10px;
+        }
+
+        .info-label {
+            font-weight: bold;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            color: #333;
+        }
+
+        .status-badge {
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            background: #f8f9fa;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+        }
+
+        .tab.active {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .loan-history {
+            margin-top: 20px;
+        }
+
+        .loan-card {
+            background: #fff;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: var(--border-radius);
+            border: 1px solid #ddd;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background: white;
+            padding: 20px;
+            width: 90%;
+            max-width: 600px;
+            margin: 50px auto;
+            border-radius: var(--border-radius);
+        }
+
+        .chart-container {
+            margin-top: 20px;
+            height: 300px;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <div class="header">
+            <h1><i class="fas fa-user-tie"></i> Painel Administrativo</h1>
+            <div class="user-info">
+                <span id="userName"></span>
+                <button onclick="logout()" class="btn btn-danger btn-small">
+                    <i class="fas fa-sign-out-alt"></i> Sair
+                </button>
+            </div>
+        </div>
+
+        <div class="menu">
+            <div class="menu-item" onclick="showSection('clientes')">
+                <i class="fas fa-users"></i>
+                <h3>Clientes</h3>
+                <p>Gerenciar clientes</p>
+            </div>
+            <div class="menu-item" onclick="showSection('emprestimos')">
+                <i class="fas fa-hand-holding-usd"></i>
+                <h3>Empréstimos</h3>
+                <p>Gerenciar empréstimos</p>
+            </div>
+            <div class="menu-item" onclick="showSection('pagamentos')">
+                <i class="fas fa-money-bill-wave"></i>
+                <h3>Pagamentos</h3>
+                <p>Histórico de pagamentos</p>
+            </div>
+            <div class="menu-item" onclick="showSection('relatorios')">
+                <i class="fas fa-chart-bar"></i>
+                <h3>Relatórios</h3>
+                <p>Estatísticas e análises</p>
+            </div>
+        </div>
+
+        <div class="content">
+            <!-- Seção de Clientes -->
+            <div id="clientes-section">
+                <div class="search-bar">
+                    <input type="text" id="searchCliente" placeholder="Buscar por nome, CPF ou email...">
+                    <button class="btn btn-primary" onclick="buscarClientes()">
+                        <i class="fas fa-search"></i> Buscar
+                    </button>
+                </div>
+
+                <div class="filters">
+                    <select class="filter-select" id="statusFilter">
+                        <option value="">Status</option>
+                        <option value="ativo">Ativo</option>
+                        <option value="bloqueado">Bloqueado</option>
+                        <option value="inadimplente">Inadimplente</option>
+                    </select>
+                    <select class="filter-select" id="tipoFilter">
+                        <option value="">Tipo de Cliente</option>
+                        <option value="PG">PG</option>
+                        <option value="NaoPG">Não PG</option>
+                    </select>
+                </div>
+
+                <div id="clientes-lista">
+                    <!-- Lista de clientes será carregada aqui -->
+                </div>
+            </div>
+
+            <!-- Seção de Empréstimos -->
+            <div id="emprestimos-section" style="display: none;">
+                <div class="tabs">
+                    <button class="tab active" onclick="showTab('pendentes')">Pendentes</button>
+                    <button class="tab" onclick="showTab('aprovados')">Aprovados</button>
+                    <button class="tab" onclick="showTab('recusados')">Recusados</button>
+                </div>
+
+                <div id="emprestimos-lista">
+                    <!-- Lista de empréstimos será carregada aqui -->
+                </div>
+            </div>
+
+            <!-- Seção de Pagamentos -->
+            <div id="pagamentos-section" style="display: none;">
+                <div class="filters">
+                    <input type="date" id="dataInicio">
+                    <input type="date" id="dataFim">
+                    <button class="btn btn-primary" onclick="filtrarPagamentos()">
+                        <i class="fas fa-filter"></i> Filtrar
+                    </button>
+                </div>
+
+                <div id="pagamentos-lista">
+                    <!-- Lista de pagamentos será carregada aqui -->
+                </div>
+            </div>
+
+            <!-- Seção de Relatórios -->
+            <div id="relatorios-section" style="display: none;">
+                <div class="chart-container">
+                    <!-- Gráficos serão carregados aqui -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Detalhes do Cliente -->
+    <div id="clienteModal" class="modal">
+        <div class="modal-content">
+            <h2>Detalhes do Cliente</h2>
+            <div id="clienteDetalhes">
+                <!-- Detalhes do cliente serão carregados aqui -->
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script type="module">
+        import { API_URL } from '../frontend/src/js/config.js';
+
+        // Verificar autenticação
+        window.onload = function() {
+            const token = localStorage.getItem('adminToken');
+            const userData = JSON.parse(localStorage.getItem('adminData'));
+
+            if (!token || !userData || userData.role !== 'admin') {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            document.getElementById('userName').textContent = userData.nome;
+            carregarClientes();
+        };
+
+        // Funções de navegação
+        window.showSection = function(section) {
+            document.querySelectorAll('.content > div').forEach(div => {
+                div.style.display = 'none';
+            });
+            document.getElementById(`${section}-section`).style.display = 'block';
+
+            // Carregar dados específicos da seção
+            switch(section) {
+                case 'clientes':
+                    carregarClientes();
+                    break;
+                case 'emprestimos':
+                    carregarEmprestimos();
+                    break;
+                case 'pagamentos':
+                    carregarPagamentos();
+                    break;
+                case 'relatorios':
+                    carregarRelatorios();
+                    break;
+            }
+        };
+
+        // Carregar lista de clientes
+        async function carregarClientes() {
+            try {
+                const response = await fetch(`${API_URL}/api/clientes`, {
+                    headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('adminToken')
+                    }
+                });
+
+                if (!response.ok) throw new Error('Erro ao carregar clientes');
+
+                const clientes = await response.json();
+                const container = document.getElementById('clientes-lista');
+                container.innerHTML = '';
+
+                clientes.forEach(cliente => {
+                    const card = document.createElement('div');
+                    card.className = 'client-card';
+                    card.innerHTML = `
+                        <div class="client-header">
+                            <h3>${cliente.nome}</h3>
+                            <span class="status-badge status-${cliente.status}">${cliente.status}</span>
+                        </div>
+                        <div class="client-info">
+                            <div class="info-group">
+                                <div class="info-label">CPF</div>
+                                <div class="info-value">${cliente.cpf}</div>
+                            </div>
+                            <div class="info-group">
+                                <div class="info-label">Email</div>
+                                <div class="info-value">${cliente.email}</div>
+                            </div>
+                            <div class="info-group">
+                                <div class="info-label">Telefone</div>
+                                <div class="info-value">${cliente.telefone}</div>
+                            </div>
+                            <div class="info-group">
+                                <div class="info-label">Score</div>
+                                <div class="info-value">${cliente.score}</div>
+                            </div>
+                        </div>
+                        <div class="btn-group">
+                            <button onclick="verDetalhesCliente(${cliente.id})" class="btn btn-primary btn-small">
+                                <i class="fas fa-eye"></i> Ver Detalhes
+                            </button>
+                            <button onclick="verEmprestimos(${cliente.id})" class="btn btn-info btn-small">
+                                <i class="fas fa-file-invoice-dollar"></i> Empréstimos
+                            </button>
+                            <button onclick="verPagamentos(${cliente.id})" class="btn btn-success btn-small">
+                                <i class="fas fa-money-bill"></i> Pagamentos
+                            </button>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro ao carregar clientes');
+            }
+        }
+
+        // Função de logout
+        window.logout = function() {
+            localStorage.removeItem('adminToken');
+            localStorage.removeItem('adminData');
+            window.location.href = 'index.html';
+        };
+
+        // Funções para manipulação de dados
+        window.verDetalhesCliente = async function(id) {
+            try {
+                const response = await fetch(`${API_URL}/api/clientes/${id}`, {
+                    headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('adminToken')
+                    }
+                });
+
+                if (!response.ok) throw new Error('Erro ao carregar detalhes do cliente');
+
+                const cliente = await response.json();
+                const modal = document.getElementById('clienteModal');
+                const detalhes = document.getElementById('clienteDetalhes');
+
+                detalhes.innerHTML = `
+                    <div class="client-info">
+                        <div class="info-group">
+                            <div class="info-label">Nome Completo</div>
+                            <div class="info-value">${cliente.nome}</div>
+                        </div>
+                        <div class="info-group">
+                            <div class="info-label">CPF</div>
+                            <div class="info-value">${cliente.cpf}</div>
+                        </div>
+                        <div class="info-group">
+                            <div class="info-label">Data de Nascimento</div>
+                            <div class="info-value">${new Date(cliente.data_nascimento).toLocaleDateString()}</div>
+                        </div>
+                        <div class="info-group">
+                            <div class="info-label">Endereço</div>
+                            <div class="info-value">${cliente.endereco}</div>
+                        </div>
+                        <div class="info-group">
+                            <div class="info-label">Score</div>
+                            <div class="info-value">${cliente.score}</div>
+                        </div>
+                        <div class="info-group">
+                            <div class="info-label">Margem Disponível</div>
+                            <div class="info-value">
+                                Avulso: R$ ${cliente.margem_avulso.toFixed(2)}<br>
+                                Parcelado: R$ ${cliente.margem_parcelado.toFixed(2)}<br>
+                                Cartão: R$ ${cliente.margem_cartao.toFixed(2)}
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                modal.style.display = 'block';
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro ao carregar detalhes do cliente');
+            }
+        };
+
+        // Fechar modal ao clicar fora
+        window.onclick = function(event) {
+            const modal = document.getElementById('clienteModal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        };
+
+        // Inicializar primeira seção
+        showSection('clientes');
+    </script>
+</body>
+</html> 
